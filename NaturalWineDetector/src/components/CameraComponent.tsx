@@ -134,7 +134,8 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
       // Attempt to get location first (optional)
       if (locationPermission) {
         try {
-          capturedLocation = await LocationService.getCurrentLocationWithFallback();
+          const location = await LocationService.getCurrentLocationWithFallback();
+          capturedLocation = location || undefined;
         } catch (error) {
           console.warn('Failed to get location, continuing without it:', error);
           // Continue without location - it's optional

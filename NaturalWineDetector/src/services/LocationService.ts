@@ -87,7 +87,7 @@ export class LocationService {
       // Get current location with timeout
       const locationPromise = Location.getCurrentPositionAsync(this.HIGH_ACCURACY_OPTIONS);
       const timeoutPromise = new Promise<never>((_, reject) => {
-        setTimeout(() => {
+        global.setTimeout(() => {
           reject(ErrorHandler.createLocationError({
             reason: 'timeout',
             message: 'Location request timed out',

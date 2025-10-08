@@ -73,7 +73,7 @@ export const validateImageComplete = async (imageUri: string): Promise<{
       };
     }
 
-    const fileSize = fileInfo.size || 0;
+    const fileSize = (fileInfo as any).size || 0;
 
     // Check file size
     if (fileSize === 0) {
@@ -140,7 +140,7 @@ export const getImageInfo = async (imageUri: string): Promise<{
     
     return {
       exists: fileInfo.exists,
-      size: fileInfo.size || 0,
+      size: (fileInfo as any).size || 0,
       extension,
       isValid: fileInfo.exists && IMAGE_CONFIG.SUPPORTED_FORMATS.includes(extension as any),
     };

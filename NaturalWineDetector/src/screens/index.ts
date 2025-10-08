@@ -3,3 +3,4 @@ export * from './CameraScreen';
 export * from './AnalysisScreen';
 export * from './HistoryScreen';
 export * from './WineDetailScreen';
+export * from './WineLoggingScreen';

@@ -160,7 +160,7 @@ export class ImageService {
       
       // Convert to base64
       const base64 = await FileSystem.readAsStringAsync(processed.uri, {
-        encoding: FileSystem.EncodingType.Base64,
+        encoding: 'base64',
       });
 
       return base64;
@@ -323,7 +323,7 @@ export class ImageService {
    * Get cache directory for temporary files
    */
   static getCacheDirectory(): string {
-    return `${FileSystem.cacheDirectory}images/`;
+    return `${(FileSystem as any).cacheDirectory || ''}images/`;
   }
 
   /**

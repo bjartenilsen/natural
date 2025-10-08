@@ -9,7 +9,7 @@ import {
 } from '../types/ApiTypes';
 import { ApiError } from '../types/ErrorTypes';
 import { API_CONFIG, RETRY_CONFIG } from '../utils/constants';
-import { compressImage, imageToBase64, validateImage } from '../utils/imageUtils';
+import { processImageForApi, imageToBase64, validateImageComplete } from '../utils/imageUtils';
 import { ApiKeyService, ApiUsageData } from './ApiKeyService';
 import { ErrorHandler } from '../utils/errorHandler';
 
@@ -97,10 +97,10 @@ export class ChatGPTService {
 
     try {
       // Validate image before processing
-      const isValid = await validateImage(imageUri);
-      if (!isValid) {
+      const validation = await validateImageComplete(imageUri);
+      if (!validation.isValid) {
         throw ErrorHandler.createApiError({
-          message: 'Invalid image format or size',
+          message: validation.error || 'Invalid image format or size',
           recoverable: false,
           endpoint: 'validation',
         });
@@ -110,8 +110,8 @@ export class ChatGPTService {
       this.checkRateLimit();
 
       // Compress and convert image
-      const compressedUri = await compressImage(imageUri);
-      const base64Image = await imageToBase64(compressedUri);
+      const processedResult = await processImageForApi(imageUri);
+      const base64Image = await imageToBase64(processedResult.uri);
 
       // Perform analysis with retry logic
       const analysis = await this.performAnalysisWithRetry(base64Image);
@@ -366,7 +366,7 @@ export class ChatGPTService {
    * @returns Promise<void>
    */
   private static sleep(ms: number): Promise<void> {
-    return new Promise(resolve => setTimeout(resolve, ms));
+    return new Promise(resolve => global.setTimeout(resolve, ms));
   }
 
   /**
