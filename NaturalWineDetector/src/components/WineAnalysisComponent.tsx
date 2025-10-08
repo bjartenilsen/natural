@@ -6,7 +6,6 @@ import {
   Image,
   ActivityIndicator,
   TouchableOpacity,
-  Alert,
 } from 'react-native';
 import { WineAnalysisResult, LocationData } from '../types/WineTypes';
 import { ChatGPTService } from '../services/ChatGPTService';

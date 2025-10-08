@@ -1,1 +1,267 @@
 .vscode/
+.kiro/settings/mcp.json
+# Natural Wine Detector - React Native + Expo Project
+# Comprehensive .gitignore for React Native, Expo, TypeScript, and Node.js
+
+# ===== NODE.JS =====
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# Runtime data
+pids
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+
+# nyc test coverage
+.nyc_output
+
+# ===== EXPO =====
+.expo/
+dist/
+web-build/
+
+# Expo CLI
+.expo-shared/
+
+# EAS Build
+build/
+eas-build-*/
+
+# Expo development
+.expo-dev/
+
+# ===== REACT NATIVE =====
+# Metro bundler cache
+.metro-health-check*
+
+# React Native packager cache
+*.hbc
+
+# Android
+android/app/build/
+android/build/
+android/.gradle/
+android/gradle/
+android/gradlew
+android/gradlew.bat
+android/local.properties
+android/app/release/
+android/app/debug/
+android/keystores/
+*.keystore
+*.jks
+
+# iOS
+ios/build/
+ios/Pods/
+ios/*.xcworkspace
+ios/*.xcuserdata/
+ios/DerivedData/
+ios/.xcode.env.local
+
+# ===== TYPESCRIPT =====
+*.tsbuildinfo
+*.d.ts.map
+
+# ===== ENVIRONMENT & SECRETS =====
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# API Keys and secrets
+secrets.json
+config/secrets.js
+.secrets/
+
+# ===== LOGS =====
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+.pnpm-debug.log*
+
+# ===== TEMPORARY FILES =====
+*.tmp
+*.temp
+.tmp/
+.temp/
+
+# ===== OPERATING SYSTEM =====
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.cab
+*.msi
+*.msix
+*.msm
+*.msp
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# ===== IDE & EDITORS =====
+# VSCode
+.vscode/settings.json
+.vscode/launch.json
+.vscode/extensions.json
+.vscode/.ropeproject
+
+# IntelliJ IDEA / WebStorm
+.idea/
+*.swp
+*.swo
+*~
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Vim
+*.swp
+*.swo
+*.un~
+Session.vim
+.netrwhist
+
+# Emacs
+*~
+\#*\#
+/.emacs.desktop
+/.emacs.desktop.lock
+*.elc
+auto-save-list
+tramp
+.\#*
+
+# ===== TESTING =====
+coverage/
+.nyc_output/
+junit.xml
+test-results/
+*.lcov
+
+# Jest
+jest_*
+.jest/
+
+# ===== LINTING & FORMATTING =====
+.eslintcache
+
+# ===== PACKAGE MANAGERS =====
+# Yarn
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# pnpm
+.pnpm-store/
+
+# ===== BUILD OUTPUTS =====
+build/
+dist/
+out/
+.next/
+.nuxt/
+.vuepress/dist/
+
+# ===== DATABASES =====
+*.db
+*.sqlite
+*.sqlite3
+
+# ===== MEDIA & ASSETS =====
+# Large media files (uncomment if you don't want to track them)
+# *.mp4
+# *.mov
+# *.avi
+# *.mkv
+# *.mp3
+# *.wav
+# *.flac
+
+# ===== DOCUMENTATION =====
+# Auto-generated docs
+docs/build/
+.docusaurus/
+
+# ===== DEPLOYMENT =====
+# Vercel
+.vercel
+
+# Netlify
+.netlify/
+
+# ===== MISC =====
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Lock files (choose one based on your package manager)
+# Uncomment the one you DON'T use:
+# package-lock.json  # if using yarn
+# yarn.lock          # if using npm
+
+# Runtime configuration
+.expo/settings.json
+
+# Expo Router
+.expo/types/
+
+# Local Expo CLI state
+.expo/README.md
+
+# Temporary folders
+tmp/
+temp/
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json

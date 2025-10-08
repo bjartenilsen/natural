@@ -15,7 +15,7 @@ export const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({
   showWhenOnline = false,
   position = 'top'
 }) => {
-  const { isOffline, networkState } = useNetworkState();
+  const { isOffline } = useNetworkState();
   const [slideAnim] = React.useState(new Animated.Value(isOffline ? 0 : -50));
   const [wasOffline, setWasOffline] = React.useState(isOffline);
 

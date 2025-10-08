@@ -186,7 +186,7 @@ const CameraInterface: React.FC<CameraComponentProps> = ({
         {!canUseLocation() && (
           <View style={styles.locationWarning}>
             <Text style={styles.locationWarningText}>
-              📍 Location access denied. Wine location won't be recorded.
+              📍 Location access denied. Wine location won&apos;t be recorded.
             </Text>
           </View>
         )}

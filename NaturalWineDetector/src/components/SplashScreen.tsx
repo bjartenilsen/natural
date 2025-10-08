@@ -12,7 +12,7 @@ interface SplashScreenProps {
   onFinish: () => void;
 }
 
-const { width, height } = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export const SplashScreen: React.FC<SplashScreenProps> = ({ onFinish }) => {
   const { theme } = useTheme();

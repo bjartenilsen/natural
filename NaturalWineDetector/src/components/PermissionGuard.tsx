@@ -11,7 +11,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { PermissionService, PermissionType } from '../services/PermissionService';
+import { PermissionType } from '../services/PermissionService';
 import { usePermissions } from '../hooks/usePermissions';
 
 interface PermissionGuardProps {
@@ -79,7 +79,7 @@ export const PermissionGuard: React.FC<PermissionGuardProps> = ({
 
     setRequesting(true);
     try {
-      const results = await requestMultiplePermissions(requiredPermissions);
+      await requestMultiplePermissions(requiredPermissions);
       
       // Check which permissions were granted
       const { granted, missing } = checkRequiredPermissions();

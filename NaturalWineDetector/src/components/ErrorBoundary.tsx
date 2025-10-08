@@ -94,7 +94,7 @@ export class ErrorBoundary extends Component<Props, State> {
             
             <Text style={styles.title}>Oops! Something went wrong</Text>
             <Text style={styles.message}>
-              The app encountered an unexpected error. Don't worry, your data is safe.
+              The app encountered an unexpected error. Don&apos;t worry, your data is safe.
             </Text>
 
             <Text style={styles.errorId}>
