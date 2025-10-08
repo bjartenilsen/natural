@@ -1,7 +1,7 @@
 # GitHub Actions Setup - Final Configuration
 
 ## ✅ Problem Resolved
-Fixed the GitHub Actions workflow structure and Node.js compatibility issues for EAS builds.
+Fixed the GitHub Actions workflow structure, Node.js compatibility issues, and package-lock.json sync issues for EAS builds.
 
 ## 🔧 Final Workflow Structure
 
@@ -74,6 +74,10 @@ If builds still fail:
 2. Verify Node.js 20.11.1 is being used in logs
 3. Ensure no old workflow files are cached
 4. Check that all commands run in `./NaturalWineDetector` directory
+5. If you see "package.json and package-lock.json are out of sync":
+   - Delete `NaturalWineDetector/package-lock.json`
+   - Run `npm install` in the NaturalWineDetector directory
+   - Commit the new package-lock.json
 
 ## ✨ Success Indicators
 

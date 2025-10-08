@@ -41,7 +41,7 @@ jobs:
 
       - name: Install dependencies
         working-directory: ./NaturalWineDetector
-        run: npm install
+        run: npm ci
 
       - name: Run TypeScript check
         working-directory: ./NaturalWineDetector
