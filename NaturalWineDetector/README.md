@@ -24,9 +24,21 @@ src/
 └── context/        # React Context providers
 ```
 
+## Prerequisites
+
+- **Node.js**: Version 20.0.0 or higher
+- **npm**: Latest version
+- **Expo CLI**: `npm install -g @expo/cli`
+- **EAS CLI**: `npm install -g eas-cli` (for building)
+
 ## Getting Started
 
-1. Install dependencies:
+1. Ensure you have Node.js 20+ installed:
+   ```bash
+   node --version  # Should be 20.0.0 or higher
+   ```
+
+2. Install dependencies:
    ```bash
    npm install
    ```
