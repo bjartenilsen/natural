@@ -1,3 +1,5 @@
-// Export all context providers from this file
+/**
+ * Export all context providers and related components
+ */
 export * from './AppContext';
 export * from './WineContext';
