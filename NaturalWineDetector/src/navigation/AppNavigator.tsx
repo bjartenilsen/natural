@@ -8,6 +8,7 @@ import {
   HistoryScreen,
   WineDetailScreen,
   WineLoggingScreen,
+  PermissionScreen,
 } from '../screens';
 
 const Stack = createStackNavigator<RootStackParamList>();
@@ -61,6 +62,13 @@ export const AppNavigator: React.FC = () => {
           component={WineDetailScreen}
           options={{
             title: 'Wine Details',
+          }}
+        />
+        <Stack.Screen
+          name="Permissions"
+          component={PermissionScreen}
+          options={{
+            title: 'App Permissions',
           }}
         />
       </Stack.Navigator>

@@ -4,3 +4,4 @@ export * from './AnalysisScreen';
 export * from './HistoryScreen';
 export * from './WineDetailScreen';
 export * from './WineLoggingScreen';
+export * from './PermissionScreen';

@@ -52,6 +52,7 @@ export type RootStackParamList = {
   WineDetail: {
     wineId: string;
   };
+  Permissions: undefined;
 };
 
 /**

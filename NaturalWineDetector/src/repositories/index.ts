@@ -3,3 +3,4 @@ export * from './WineRepository';
 export * from './DatabaseService';
 export * from './DatabaseUtils';
 export * from './DatabaseInitializer';
+export * from './OptimizedWineRepository';

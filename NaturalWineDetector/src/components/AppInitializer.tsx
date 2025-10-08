@@ -6,6 +6,7 @@ import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'rea
 import { useAppContext } from '../context/AppContext';
 import { NetworkService } from '../services/NetworkService';
 import { OfflineQueueService } from '../services/OfflineQueueService';
+import { MemoryManager } from '../utils/MemoryManager';
 
 interface AppInitializerProps {
   children: ReactNode;
@@ -18,10 +19,18 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
 
   useEffect(() => {
     initializeServices();
+    
+    // Cleanup on unmount
+    return () => {
+      MemoryManager.cleanup();
+    };
   }, []);
 
   const initializeServices = async () => {
     try {
+      // Initialize memory manager
+      MemoryManager.initialize();
+
       // Initialize network service
       const networkService = NetworkService.getInstance();
       await networkService.initialize();

@@ -10,7 +10,7 @@ import { ErrorHandler } from '../utils/errorHandler';
 import { NetworkService } from '../services/NetworkService';
 
 export class WineRepository {
-  private dbService: DatabaseService;
+  protected dbService: DatabaseService;
   private networkService: NetworkService;
 
   constructor() {

@@ -6,6 +6,8 @@
 import ImageResizer from '@bam.tech/react-native-image-resizer';
 import * as FileSystem from 'expo-file-system';
 import { ErrorHandler } from '../utils/errorHandler';
+import { MemoryManager } from '../utils/MemoryManager';
+import { PerformanceMonitor } from '../utils/PerformanceMonitor';
 
 export interface ImageProcessingOptions {
   maxWidth?: number;
@@ -50,13 +52,17 @@ export class ImageService {
     imageUri: string, 
     options: ImageProcessingOptions = {}
   ): Promise<ProcessedImageResult> {
-    try {
+    return PerformanceMonitor.trackOperation(
+      'processImage',
+      async () => {
+        try {
       // Validate input
       if (!imageUri) {
         throw ErrorHandler.createImageError({
-          reason: 'invalid_format',
+          reason: 'processing_failed',
           message: 'Image URI is required',
           recoverable: false,
+          timestamp: new Date(),
         });
       }
 
@@ -93,37 +99,44 @@ export class ImageService {
       // Validate final file size
       if (processedInfo.size > this.MAX_FILE_SIZE) {
         throw ErrorHandler.createImageError({
-          reason: 'file_too_large',
+          reason: 'too_large',
           message: `Processed image is still too large: ${(processedInfo.size / 1024 / 1024).toFixed(1)}MB`,
           recoverable: true,
+          timestamp: new Date(),
         });
       }
 
-      const compressionRatio = originalInfo.size > 0 
-        ? (originalInfo.size - processedInfo.size) / originalInfo.size 
-        : 0;
+          const compressionRatio = originalInfo.size > 0 
+            ? (originalInfo.size - processedInfo.size) / originalInfo.size 
+            : 0;
 
-      return {
-        uri: processedUri,
-        width: processedInfo.width,
-        height: processedInfo.height,
-        size: processedInfo.size,
-        originalSize: originalInfo.size,
-        compressionRatio,
-      };
+          // Add processed image to memory manager for tracking
+          await MemoryManager.addImageToCache(processedUri);
 
-    } catch (error) {
-      if (error && typeof error === 'object' && 'type' in error && error.type === 'image') {
-        throw error;
-      }
+          return {
+            uri: processedUri,
+            width: processedInfo.width,
+            height: processedInfo.height,
+            size: processedInfo.size,
+            originalSize: originalInfo.size,
+            compressionRatio,
+          };
 
-      throw ErrorHandler.createImageError({
-        reason: 'processing_failed',
-        message: 'Failed to process image',
-        recoverable: true,
-        originalError: error as Error,
-      });
-    }
+        } catch (error) {
+          if (error && typeof error === 'object' && 'type' in error && error.type === 'image') {
+            throw error;
+          }
+
+          throw ErrorHandler.createImageError({
+            reason: 'processing_failed',
+            message: 'Failed to process image',
+            recoverable: true,
+            timestamp: new Date(),
+          });
+        }
+      },
+      { originalSize: await this.getImageSize(imageUri) }
+    );
   }
 
   /**
@@ -166,10 +179,10 @@ export class ImageService {
       return base64;
     } catch (error) {
       throw ErrorHandler.createImageError({
-        reason: 'conversion_failed',
+        reason: 'processing_failed',
         message: 'Failed to convert image to base64',
         recoverable: true,
-        originalError: error as Error,
+        timestamp: new Date(),
       });
     }
   }
@@ -185,6 +198,7 @@ export class ImageService {
         reason: 'invalid_format',
         message: `Unsupported image format: ${extension}. Supported formats: ${this.SUPPORTED_FORMATS.join(', ')}`,
         recoverable: false,
+        timestamp: new Date(),
       });
     }
   }
@@ -197,8 +211,9 @@ export class ImageService {
     
     if (minDimension < this.MIN_DIMENSION) {
       throw ErrorHandler.createImageError({
-        reason: 'invalid_dimensions',
+        reason: 'processing_failed',
         message: `Image too small: ${width}x${height}. Minimum dimension: ${this.MIN_DIMENSION}px`,
+        timestamp: new Date(),
         recoverable: true,
       });
     }
@@ -245,14 +260,14 @@ export class ImageService {
       return {
         width: 1000, // Placeholder - would need actual image dimension reading
         height: 1000, // Placeholder - would need actual image dimension reading
-        size: fileInfo.size || 0,
+        size: (fileInfo as any).size || 0,
       };
     } catch (error) {
       throw ErrorHandler.createImageError({
-        reason: 'info_failed',
+        reason: 'processing_failed',
         message: 'Failed to get image information',
         recoverable: false,
-        originalError: error as Error,
+        timestamp: new Date(),
       });
     }
   }
@@ -279,10 +294,10 @@ export class ImageService {
       return { uri: result.uri };
     } catch (error) {
       throw ErrorHandler.createImageError({
-        reason: 'resize_failed',
+        reason: 'processing_failed',
         message: 'Failed to resize image',
         recoverable: true,
-        originalError: error as Error,
+        timestamp: new Date(),
       });
     }
   }
@@ -336,5 +351,46 @@ export class ImageService {
     if (!dirInfo.exists) {
       await FileSystem.makeDirectoryAsync(cacheDir, { intermediates: true });
     }
+  }
+
+  /**
+   * Get image file size
+   */
+  private static async getImageSize(imageUri: string): Promise<number> {
+    try {
+      const fileInfo = await FileSystem.getInfoAsync(imageUri);
+      return (fileInfo as any).size || 0;
+    } catch (error) {
+      return 0;
+    }
+  }
+
+  /**
+   * Clean up processed image from memory manager
+   */
+  static async cleanupProcessedImage(imageUri: string): Promise<void> {
+    return PerformanceMonitor.trackOperation(
+      'cleanupProcessedImage',
+      async () => {
+        await MemoryManager.removeImageFromCache(imageUri, true);
+      },
+      { imageUri }
+    );
+  }
+
+  /**
+   * Batch cleanup multiple images
+   */
+  static async batchCleanupImages(imageUris: string[]): Promise<void> {
+    return PerformanceMonitor.trackOperation(
+      'batchCleanupImages',
+      async () => {
+        const cleanupPromises = imageUris.map(uri => 
+          MemoryManager.removeImageFromCache(uri, true)
+        );
+        await Promise.allSettled(cleanupPromises);
+      },
+      { count: imageUris.length }
+    );
   }
 }

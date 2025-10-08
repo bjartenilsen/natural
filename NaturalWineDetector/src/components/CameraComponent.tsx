@@ -3,79 +3,34 @@
  * Integrates camera functionality with automatic GPS location capture
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  Alert,
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
-import { LocationData } from '../types';
+import { LocationData } from '../types/WineTypes';
 import { LocationService } from '../services/LocationService';
-import { ErrorHandler } from '../utils/errorHandler';
+import { usePermissions } from '../hooks/usePermissions';
+import { PermissionGuard } from './PermissionGuard';
 
 interface CameraComponentProps {
   onImageCaptured: (imageUri: string, location?: LocationData) => void;
   onError: (error: string) => void;
 }
 
-const { width, height } = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 
-export const CameraComponent: React.FC<CameraComponentProps> = ({
+const CameraInterface: React.FC<CameraComponentProps> = ({
   onImageCaptured,
   onError,
 }) => {
-  const [cameraPermission, setCameraPermission] = useState<boolean | null>(null);
-  const [locationPermission, setLocationPermission] = useState<boolean | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
-  const [isRequestingPermissions, setIsRequestingPermissions] = useState(false);
-
-  useEffect(() => {
-    checkPermissions();
-  }, []);
-
-  /**
-   * Check and request necessary permissions
-   */
-  const checkPermissions = async () => {
-    setIsRequestingPermissions(true);
-    try {
-      // Check camera permission
-      const cameraStatus = await ImagePicker.getCameraPermissionsAsync();
-      setCameraPermission(cameraStatus.status === 'granted');
-
-      // Check location permission
-      const hasLocation = await LocationService.hasLocationPermission();
-      setLocationPermission(hasLocation);
-
-      // Request camera permission if not granted
-      if (cameraStatus.status !== 'granted') {
-        const cameraRequest = await ImagePicker.requestCameraPermissionsAsync();
-        setCameraPermission(cameraRequest.status === 'granted');
-      }
-
-      // Request location permission if not granted (optional)
-      if (!hasLocation) {
-        try {
-          const locationGranted = await LocationService.requestLocationPermission();
-          setLocationPermission(locationGranted);
-        } catch (error) {
-          // Location permission is optional, so we don't fail here
-          console.warn('Location permission not granted:', error);
-          setLocationPermission(false);
-        }
-      }
-    } catch (error) {
-      console.error('Error checking permissions:', error);
-      onError('Failed to check camera permissions');
-    } finally {
-      setIsRequestingPermissions(false);
-    }
-  };
+  const { canUseLocation, canUseMediaLibrary } = usePermissions();
 
   /**
    * Validate image quality and format
@@ -115,24 +70,12 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
    * Capture photo with automatic location
    */
   const capturePhoto = async () => {
-    if (!cameraPermission) {
-      Alert.alert(
-        'Camera Permission Required',
-        'Please grant camera permission to take photos of wine bottles.',
-        [
-          { text: 'Cancel', style: 'cancel' },
-          { text: 'Grant Permission', onPress: checkPermissions },
-        ]
-      );
-      return;
-    }
-
     setIsCapturing(true);
     let capturedLocation: LocationData | undefined;
 
     try {
       // Attempt to get location first (optional)
-      if (locationPermission) {
+      if (canUseLocation()) {
         try {
           const location = await LocationService.getCurrentLocationWithFallback();
           capturedLocation = location || undefined;
@@ -189,19 +132,14 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
    * Select photo from gallery as alternative
    */
   const selectFromGallery = async () => {
+    if (!canUseMediaLibrary()) {
+      onError('Photo library permission is required to select photos');
+      return;
+    }
+
     setIsCapturing(true);
 
     try {
-      // Request media library permission
-      const mediaStatus = await ImagePicker.getMediaLibraryPermissionsAsync();
-      if (mediaStatus.status !== 'granted') {
-        const mediaRequest = await ImagePicker.requestMediaLibraryPermissionsAsync();
-        if (mediaRequest.status !== 'granted') {
-          onError('Media library permission is required to select photos');
-          return;
-        }
-      }
-
       // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ImagePicker.MediaTypeOptions.Images,
@@ -229,29 +167,6 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
     }
   };
 
-  if (isRequestingPermissions) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color="#8B5A3C" />
-        <Text style={styles.loadingText}>Checking permissions...</Text>
-      </View>
-    );
-  }
-
-  if (cameraPermission === false) {
-    return (
-      <View style={styles.permissionContainer}>
-        <Text style={styles.permissionTitle}>Camera Access Required</Text>
-        <Text style={styles.permissionText}>
-          To analyze wine bottles, we need access to your camera to take photos.
-        </Text>
-        <TouchableOpacity style={styles.permissionButton} onPress={checkPermissions}>
-          <Text style={styles.permissionButtonText}>Grant Camera Permission</Text>
-        </TouchableOpacity>
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
       <View style={styles.cameraArea}>
@@ -268,7 +183,7 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
       </View>
 
       <View style={styles.controlsContainer}>
-        {locationPermission === false && (
+        {!canUseLocation() && (
           <View style={styles.locationWarning}>
             <Text style={styles.locationWarningText}>
               📍 Location access denied. Wine location won't be recorded.
@@ -278,9 +193,9 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
 
         <View style={styles.buttonContainer}>
           <TouchableOpacity
-            style={styles.galleryButton}
+            style={[styles.galleryButton, !canUseMediaLibrary() && styles.buttonDisabled]}
             onPress={selectFromGallery}
-            disabled={isCapturing}
+            disabled={isCapturing || !canUseMediaLibrary()}
           >
             <Text style={styles.galleryButtonText}>Gallery</Text>
           </TouchableOpacity>
@@ -304,53 +219,18 @@ export const CameraComponent: React.FC<CameraComponentProps> = ({
   );
 };
 
+export const CameraComponent: React.FC<CameraComponentProps> = (props) => {
+  return (
+    <PermissionGuard requiredPermissions={['camera']}>
+      <CameraInterface {...props} />
+    </PermissionGuard>
+  );
+};
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000000',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: '#F5F5F5',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
-    color: '#666666',
-  },
-  permissionContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 32,
-    backgroundColor: '#F5F5F5',
-  },
-  permissionTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    color: '#8B5A3C',
-    marginBottom: 16,
-    textAlign: 'center',
-  },
-  permissionText: {
-    fontSize: 16,
-    color: '#666666',
-    textAlign: 'center',
-    marginBottom: 32,
-    lineHeight: 24,
-  },
-  permissionButton: {
-    backgroundColor: '#8B5A3C',
-    paddingHorizontal: 32,
-    paddingVertical: 16,
-    borderRadius: 8,
-  },
-  permissionButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
   },
   cameraArea: {
     flex: 1,
@@ -438,6 +318,9 @@ const styles = StyleSheet.create({
     borderRadius: 25,
     borderWidth: 1,
     borderColor: '#FFFFFF',
+  },
+  buttonDisabled: {
+    opacity: 0.5,
   },
   galleryButtonText: {
     color: '#FFFFFF',
