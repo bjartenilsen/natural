@@ -14,8 +14,13 @@ jobs:
       - name: Check for EXPO_TOKEN
         run: |
           if [ -z "${{ secrets.EXPO_TOKEN }}" ]; then
-            echo "You must provide an EXPO_TOKEN secret linked to this project's Expo account in this repo's secrets. Learn more: https://docs.expo.dev/eas-update/github-actions"
-            exit 1
+            echo "⚠️  EXPO_TOKEN secret not found. EAS builds will be skipped."
+            echo "To enable builds, add an EXPO_TOKEN secret to this repository."
+            echo "Learn more: https://docs.expo.dev/eas-update/github-actions"
+            echo "SKIP_BUILD=true" >> $GITHUB_ENV
+          else
+            echo "✅ EXPO_TOKEN found. Builds will proceed."
+            echo "SKIP_BUILD=false" >> $GITHUB_ENV
           fi
 
       - name: Checkout repository
@@ -27,12 +32,10 @@ jobs:
           node-version: '20.11.1'
           cache: 'npm'
 
-      - name: Setup Expo and EAS
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Verify Node.js version
+        run: |
+          echo "Node.js version: $(node --version)"
+          npm run check-node
 
       - name: Install dependencies
         run: npm ci
@@ -43,9 +46,18 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
+      - name: Setup Expo and EAS
+        if: env.SKIP_BUILD == 'false'
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
       - name: Build Android APK
+        if: env.SKIP_BUILD == 'false'
         run: eas build --platform android --profile preview --non-interactive --no-wait
 
       - name: Build iOS (if needed)
+        if: env.SKIP_BUILD == 'false' && false  # Set second condition to true when you want to build iOS
         run: eas build --platform ios --profile preview --non-interactive --no-wait
-        if: false  # Set to true when you want to build iOS
