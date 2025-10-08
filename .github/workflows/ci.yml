@@ -1,4 +1,4 @@
-name: Test Node.js Setup
+name: CI
 
 on:
   push:
@@ -7,38 +7,34 @@ on:
     branches: [main]
 
 jobs:
-  test-node:
-    name: Test Node.js 20 Setup
+  test:
+    name: Test and Lint
     runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js 20
+      - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
           node-version: '20.11.1'
           cache: 'npm'
+          cache-dependency-path: 'NaturalWineDetector/package-lock.json'
 
       - name: Verify Node.js version
+        working-directory: ./NaturalWineDetector
         run: |
           echo "Node.js version: $(node --version)"
-          echo "NPM version: $(npm --version)"
           npm run check-node
 
       - name: Install dependencies
+        working-directory: ./NaturalWineDetector
         run: npm ci
 
       - name: Run TypeScript check
+        working-directory: ./NaturalWineDetector
         run: npm run type-check
 
       - name: Run ESLint
+        working-directory: ./NaturalWineDetector
         run: npm run lint
-
-      - name: Test EAS CLI installation
-        run: |
-          echo "Testing EAS CLI installation with Node.js 20..."
-          npm install -g @expo/cli@latest eas-cli@latest
-          echo "EAS CLI version: $(eas --version)"
-          echo "Expo CLI version: $(npx expo --version)"
-          echo "✅ EAS CLI installed successfully with Node.js 20"

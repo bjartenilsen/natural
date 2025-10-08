@@ -31,19 +31,24 @@ jobs:
         with:
           node-version: '20.11.1'
           cache: 'npm'
+          cache-dependency-path: 'NaturalWineDetector/package-lock.json'
 
       - name: Verify Node.js version
+        working-directory: ./NaturalWineDetector
         run: |
           echo "Node.js version: $(node --version)"
           npm run check-node
 
       - name: Install dependencies
+        working-directory: ./NaturalWineDetector
         run: npm ci
 
       - name: Run TypeScript check
+        working-directory: ./NaturalWineDetector
         run: npm run type-check
 
       - name: Run ESLint
+        working-directory: ./NaturalWineDetector
         run: npm run lint
 
       - name: Setup EAS CLI
@@ -55,6 +60,7 @@ jobs:
 
       - name: Authenticate with Expo
         if: env.SKIP_BUILD == 'false'
+        working-directory: ./NaturalWineDetector
         run: |
           echo "Authenticating with Expo..."
           eas login --non-interactive
@@ -63,8 +69,10 @@ jobs:
 
       - name: Build Android APK
         if: env.SKIP_BUILD == 'false'
+        working-directory: ./NaturalWineDetector
         run: eas build --platform android --profile preview --non-interactive --no-wait
 
       - name: Build iOS (if needed)
         if: env.SKIP_BUILD == 'false' && false  # Set second condition to true when you want to build iOS
+        working-directory: ./NaturalWineDetector
         run: eas build --platform ios --profile preview --non-interactive --no-wait
