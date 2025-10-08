@@ -328,7 +328,7 @@ export class ImageService {
   /**
    * Generate unique filename for processed images
    */
-  static generateProcessedFilename(originalUri: string, suffix: string = 'processed'): string {
+  static generateProcessedFilename(originalUri: string, suffix = 'processed'): string {
     const timestamp = Date.now();
     const extension = this.getFileExtension(originalUri) || 'jpg';
     return `wine_${suffix}_${timestamp}.${extension}`;

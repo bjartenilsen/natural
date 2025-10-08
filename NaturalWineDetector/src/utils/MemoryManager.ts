@@ -71,7 +71,7 @@ export class MemoryManager {
   /**
    * Remove an image from cache and optionally delete the file
    */
-  static async removeImageFromCache(uri: string, deleteFile: boolean = false): Promise<void> {
+  static async removeImageFromCache(uri: string, deleteFile = false): Promise<void> {
     try {
       this.imageCache.delete(uri);
       
@@ -89,7 +89,7 @@ export class MemoryManager {
   /**
    * Clear all cached images and optionally delete files
    */
-  static async clearImageCache(deleteFiles: boolean = false): Promise<void> {
+  static async clearImageCache(deleteFiles = false): Promise<void> {
     try {
       if (deleteFiles) {
         const promises = Array.from(this.imageCache.values()).map(async (item) => {

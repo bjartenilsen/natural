@@ -76,7 +76,7 @@ export class OfflineQueueService {
   async addToQueue(
     type: 'api_request',
     data: any,
-    maxAttempts: number = 3
+    maxAttempts = 3
   ): Promise<string> {
     const item: OfflineQueueItem = {
       id: `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,

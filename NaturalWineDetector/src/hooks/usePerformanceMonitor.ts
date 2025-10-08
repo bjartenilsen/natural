@@ -38,8 +38,8 @@ interface UsePerformanceMonitorReturn {
 }
 
 export const usePerformanceMonitor = (
-  autoStart: boolean = true,
-  updateInterval: number = 5000 // 5 seconds
+  autoStart = true,
+  updateInterval = 5000 // 5 seconds
 ): UsePerformanceMonitorReturn => {
   const [performanceStats, setPerformanceStats] = useState<PerformanceStats[]>([]);
   const [activeOperations, setActiveOperations] = useState(0);

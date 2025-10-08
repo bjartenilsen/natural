@@ -166,7 +166,7 @@ export class NetworkService {
    * @param timeout - Maximum time to wait in milliseconds
    * @returns Promise that resolves when online or rejects on timeout
    */
-  async waitForConnectivity(timeout: number = 30000): Promise<void> {
+  async waitForConnectivity(timeout = 30000): Promise<void> {
     if (this.isOnline()) {
       return Promise.resolve();
     }
