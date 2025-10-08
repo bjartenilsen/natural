@@ -1,0 +1,81 @@
+name: Build and Test
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    name: Run Tests and Linting
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: NaturalWineDetector/package-lock.json
+
+      - name: Install dependencies
+        working-directory: ./NaturalWineDetector
+        run: npm install --legacy-peer-deps
+
+      - name: Run linting
+        working-directory: ./NaturalWineDetector
+        run: npm run lint
+
+      - name: Run type checking
+        working-directory: ./NaturalWineDetector
+        run: npm run type-check
+
+  build-preview:
+    name: Build Preview (EAS Build)
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.event_name == 'push' && (github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop')
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+          cache-dependency-path: NaturalWineDetector/package-lock.json
+
+      - name: Setup Expo and EAS
+        uses: expo/expo-github-action@v8
+        with:
+          expo-version: latest
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Install dependencies
+        working-directory: ./NaturalWineDetector
+        run: npm install --legacy-peer-deps
+
+      - name: Build Android Preview
+        working-directory: ./NaturalWineDetector
+        run: eas build --platform android --profile preview --non-interactive --no-wait
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+
+      - name: Comment PR with build link
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: '🚀 Android preview build started! Check your [Expo dashboard](https://expo.dev) for the build status.'
+            })
