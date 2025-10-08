@@ -3,94 +3,130 @@
  */
 
 /**
- * Categories of errors that can occur in the app
- */
-export type ErrorType = 'network' | 'permission' | 'storage' | 'image' | 'api' | 'location';
-
-/**
- * Structured error information
+ * Base application error interface
  */
 export interface AppError {
-  type: ErrorType;
+  type: 'api' | 'network' | 'permission' | 'storage' | 'image' | 'location';
   message: string;
   recoverable: boolean;
-  retryAction?: () => void;
-  originalError?: Error;
+  timestamp: Date;
+  context?: Record<string, any>;
 }
 
 /**
- * Network-related errors
+ * API-specific error
+ */
+export interface ApiError extends AppError {
+  type: 'api';
+  statusCode?: number;
+  rateLimited?: boolean;
+  apiEndpoint?: string;
+  requestId?: string;
+}
+
+/**
+ * Network-specific error
  */
 export interface NetworkError extends AppError {
   type: 'network';
-  statusCode?: number;
   isTimeout?: boolean;
+  isOffline?: boolean;
+  connectionType?: string;
 }
 
 /**
- * Permission-related errors
+ * Permission-specific error
  */
 export interface PermissionError extends AppError {
   type: 'permission';
   permission: 'camera' | 'location';
-  canOpenSettings: boolean;
+  canOpenSettings?: boolean;
+  currentStatus?: string;
 }
 
 /**
- * Storage/Database errors
+ * Storage-specific error
  */
 export interface StorageError extends AppError {
   type: 'storage';
-  operation: 'read' | 'write' | 'delete' | 'init';
   isStorageFull?: boolean;
+  operation?: 'read' | 'write' | 'delete';
+  tableName?: string;
 }
 
 /**
- * Image processing errors
+ * Image processing error
  */
 export interface ImageError extends AppError {
   type: 'image';
-  reason: 
-    | 'invalid_format' 
-    | 'too_large' 
-    | 'file_too_large'
-    | 'processing_failed' 
-    | 'no_wine_detected'
-    | 'conversion_failed'
-    | 'invalid_dimensions'
-    | 'info_failed'
-    | 'resize_failed';
+  reason?: 'invalid_format' | 'too_large' | 'no_wine_detected' | 'processing_failed';
+  imageSize?: number;
+  imageFormat?: string;
 }
 
 /**
- * API-related errors
- */
-export interface ApiError extends AppError {
-  type: 'api';
-  endpoint: string;
-  statusCode?: number;
-  rateLimited?: boolean;
-}
-
-/**
- * Location service errors
+ * Location service error
  */
 export interface LocationError extends AppError {
   type: 'location';
-  reason: 'permission_denied' | 'unavailable' | 'timeout' | 'accuracy_low';
+  reason?: 'permission_denied' | 'unavailable' | 'timeout' | 'accuracy_low';
+  accuracy?: number;
 }
 
 /**
- * Union type for all specific error types
- */
-export type SpecificError = NetworkError | PermissionError | StorageError | ImageError | ApiError | LocationError;
-
-/**
- * Error handler result
+ * Result of error handling
  */
 export interface ErrorHandlerResult {
   userMessage: string;
   shouldRetry: boolean;
   retryDelay?: number;
   shouldShowSettings?: boolean;
+  actionLabel?: string;
+  onAction?: () => void;
+}
+
+/**
+ * Retry configuration
+ */
+export interface RetryConfig {
+  maxAttempts: number;
+  baseDelay: number;
+  maxDelay: number;
+  backoffMultiplier: number;
+  retryableErrors: string[];
+}
+
+/**
+ * Offline queue item
+ */
+export interface OfflineQueueItem {
+  id: string;
+  type: 'api_request';
+  data: any;
+  timestamp: Date;
+  attempts: number;
+  maxAttempts: number;
+  nextRetry: Date;
+}
+
+/**
+ * Network connectivity state
+ */
+export interface NetworkState {
+  isConnected: boolean;
+  isInternetReachable: boolean;
+  type: string;
+  details: any;
+}
+
+/**
+ * Error logging entry
+ */
+export interface ErrorLogEntry {
+  id: string;
+  error: AppError;
+  userAgent?: string;
+  appVersion?: string;
+  timestamp: Date;
+  resolved: boolean;
 }

@@ -8,6 +8,7 @@ import { AppNavigator } from './src/navigation';
 import { AppProvider } from './src/context/AppContext';
 import { ErrorBoundary } from './src/components/ErrorBoundary';
 import { AppInitializer } from './src/components/AppInitializer';
+import { OfflineIndicator } from './src/components/OfflineIndicator';
 
 export default function App() {
   return (
@@ -16,6 +17,7 @@ export default function App() {
         <AppProvider>
           <AppInitializer>
             <AppNavigator />
+            <OfflineIndicator showWhenOnline={true} position="top" />
             <StatusBar style="light" />
           </AppInitializer>
         </AppProvider>

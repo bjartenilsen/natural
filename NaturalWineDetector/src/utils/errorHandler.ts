@@ -6,7 +6,11 @@ import {
   StorageError, 
   ImageError, 
   LocationError,
-  ErrorHandlerResult 
+  ErrorHandlerResult,
+  RetryConfig,
+  OfflineQueueItem,
+  NetworkState,
+  ErrorLogEntry
 } from '../types/ErrorTypes';
 
 /**
@@ -28,6 +32,220 @@ export const handleError = (error: unknown): string => {
  * Error handling utilities for creating and managing application errors
  */
 export class ErrorHandler {
+  private static errorLog: ErrorLogEntry[] = [];
+  private static offlineQueue: OfflineQueueItem[] = [];
+  private static networkState: NetworkState = {
+    isConnected: true,
+    isInternetReachable: true,
+    type: 'unknown',
+    details: null
+  };
+
+  /**
+   * Default retry configuration
+   */
+  private static defaultRetryConfig: RetryConfig = {
+    maxAttempts: 3,
+    baseDelay: 1000,
+    maxDelay: 30000,
+    backoffMultiplier: 2,
+    retryableErrors: ['network', 'api', 'timeout']
+  };
+
+  /**
+   * Update network connectivity state
+   * @param state - Current network state
+   */
+  static updateNetworkState(state: NetworkState): void {
+    this.networkState = state;
+    
+    // Process offline queue when connectivity is restored
+    if (state.isConnected && state.isInternetReachable) {
+      this.processOfflineQueue();
+    }
+  }
+
+  /**
+   * Check if device is currently offline
+   * @returns True if offline
+   */
+  static isOffline(): boolean {
+    return !this.networkState.isConnected || !this.networkState.isInternetReachable;
+  }
+
+  /**
+   * Add item to offline queue
+   * @param item - Queue item to add
+   */
+  static addToOfflineQueue(item: Omit<OfflineQueueItem, 'id' | 'timestamp' | 'attempts' | 'nextRetry'>): void {
+    const queueItem: OfflineQueueItem = {
+      ...item,
+      id: `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      timestamp: new Date(),
+      attempts: 0,
+      nextRetry: new Date()
+    };
+    
+    this.offlineQueue.push(queueItem);
+  }
+
+  /**
+   * Process offline queue when connectivity is restored
+   */
+  private static async processOfflineQueue(): Promise<void> {
+    const now = new Date();
+    const itemsToProcess = this.offlineQueue.filter(item => 
+      item.attempts < item.maxAttempts && item.nextRetry <= now
+    );
+
+    for (const item of itemsToProcess) {
+      try {
+        // Process the queued item based on type
+        await this.processQueueItem(item);
+        
+        // Remove successful item from queue
+        this.offlineQueue = this.offlineQueue.filter(q => q.id !== item.id);
+      } catch (error) {
+        // Update retry information
+        item.attempts++;
+        if (item.attempts < item.maxAttempts) {
+          const delay = Math.min(
+            this.defaultRetryConfig.baseDelay * Math.pow(this.defaultRetryConfig.backoffMultiplier, item.attempts),
+            this.defaultRetryConfig.maxDelay
+          );
+          item.nextRetry = new Date(now.getTime() + delay);
+        } else {
+          // Remove failed item after max attempts
+          this.offlineQueue = this.offlineQueue.filter(q => q.id !== item.id);
+        }
+      }
+    }
+  }
+
+  /**
+   * Process individual queue item
+   * @param item - Queue item to process
+   */
+  private static async processQueueItem(item: OfflineQueueItem): Promise<void> {
+    switch (item.type) {
+      case 'api_request':
+        // Re-attempt API request
+        // This would be implemented based on the specific API service
+        break;
+      default:
+        throw new Error(`Unknown queue item type: ${item.type}`);
+    }
+  }
+
+  /**
+   * Log error for debugging and analytics
+   * @param error - Error to log
+   */
+  static logError(error: AppError): void {
+    const logEntry: ErrorLogEntry = {
+      id: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      error,
+      timestamp: new Date(),
+      resolved: false
+    };
+
+    this.errorLog.push(logEntry);
+
+    // Keep only last 100 errors to prevent memory issues
+    if (this.errorLog.length > 100) {
+      this.errorLog = this.errorLog.slice(-100);
+    }
+
+    // Log to console in development
+    if (__DEV__) {
+      console.error('App Error:', error);
+    }
+  }
+
+  /**
+   * Get error statistics for monitoring
+   * @returns Error statistics
+   */
+  static getErrorStats(): { total: number; byType: Record<string, number>; recent: number } {
+    const now = new Date();
+    const oneHourAgo = new Date(now.getTime() - 60 * 60 * 1000);
+    
+    const recent = this.errorLog.filter(entry => entry.timestamp > oneHourAgo).length;
+    const byType = this.errorLog.reduce((acc, entry) => {
+      acc[entry.error.type] = (acc[entry.error.type] || 0) + 1;
+      return acc;
+    }, {} as Record<string, number>);
+
+    return {
+      total: this.errorLog.length,
+      byType,
+      recent
+    };
+  }
+
+  /**
+   * Retry operation with exponential backoff
+   * @param operation - Function to retry
+   * @param config - Retry configuration
+   * @returns Promise that resolves with operation result
+   */
+  static async retryOperation<T>(
+    operation: () => Promise<T>,
+    config: Partial<RetryConfig> = {}
+  ): Promise<T> {
+    const retryConfig = { ...this.defaultRetryConfig, ...config };
+    let lastError: Error;
+
+    for (let attempt = 1; attempt <= retryConfig.maxAttempts; attempt++) {
+      try {
+        return await operation();
+      } catch (error) {
+        lastError = error as Error;
+        
+        // Don't retry if it's the last attempt or error is not retryable
+        if (attempt === retryConfig.maxAttempts || !this.isRetryableError(error, retryConfig)) {
+          break;
+        }
+
+        // Calculate delay with exponential backoff
+        const delay = Math.min(
+          retryConfig.baseDelay * Math.pow(retryConfig.backoffMultiplier, attempt - 1),
+          retryConfig.maxDelay
+        );
+
+        await this.delay(delay);
+      }
+    }
+
+    throw lastError!;
+  }
+
+  /**
+   * Check if error is retryable based on configuration
+   * @param error - Error to check
+   * @param config - Retry configuration
+   * @returns True if error is retryable
+   */
+  private static isRetryableError(error: any, config: RetryConfig): boolean {
+    if (error?.type && config.retryableErrors.includes(error.type)) {
+      return true;
+    }
+    
+    // Check for specific error conditions
+    if (error?.code === 'NETWORK_ERROR' || error?.code === 'TIMEOUT') {
+      return true;
+    }
+
+    return false;
+  }
+
+  /**
+   * Delay execution for specified milliseconds
+   * @param ms - Milliseconds to delay
+   */
+  private static delay(ms: number): Promise<void> {
+    return new Promise(resolve => setTimeout(resolve, ms));
+  }
   /**
    * Handle an application error and return user-friendly result
    * @param error - The error to handle

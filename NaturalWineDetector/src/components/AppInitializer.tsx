@@ -1,9 +1,11 @@
 /**
  * App initialization component with loading and error states
  */
-import React, { ReactNode } from 'react';
+import React, { ReactNode, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useAppContext } from '../context/AppContext';
+import { NetworkService } from '../services/NetworkService';
+import { OfflineQueueService } from '../services/OfflineQueueService';
 
 interface AppInitializerProps {
   children: ReactNode;
@@ -11,8 +13,68 @@ interface AppInitializerProps {
 
 export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
   const { state, actions } = useAppContext();
+  const [servicesInitialized, setServicesInitialized] = useState(false);
+  const [initializationError, setInitializationError] = useState<string | null>(null);
 
-  // Show loading screen during app initialization
+  useEffect(() => {
+    initializeServices();
+  }, []);
+
+  const initializeServices = async () => {
+    try {
+      // Initialize network service
+      const networkService = NetworkService.getInstance();
+      await networkService.initialize();
+
+      // Initialize offline queue service
+      const offlineQueueService = OfflineQueueService.getInstance();
+      // Queue service initializes itself in constructor
+
+      setServicesInitialized(true);
+    } catch (error) {
+      console.error('Failed to initialize services:', error);
+      setInitializationError(
+        error instanceof Error ? error.message : 'Failed to initialize app services'
+      );
+    }
+  };
+
+  // Show loading screen during service initialization
+  if (!servicesInitialized && !initializationError) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.content}>
+          <ActivityIndicator size="large" color="#6b46c1" />
+          <Text style={styles.loadingText}>Starting Natural Wine Detector...</Text>
+          <Text style={styles.subText}>Initializing network and offline services</Text>
+        </View>
+      </View>
+    );
+  }
+
+  // Show error screen if service initialization failed
+  if (initializationError) {
+    return (
+      <View style={styles.container}>
+        <View style={styles.errorContent}>
+          <Text style={styles.errorTitle}>Service Initialization Failed</Text>
+          <Text style={styles.errorMessage}>{initializationError}</Text>
+          <TouchableOpacity 
+            style={styles.retryButton} 
+            onPress={() => {
+              setInitializationError(null);
+              setServicesInitialized(false);
+              initializeServices();
+            }}
+          >
+            <Text style={styles.retryButtonText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    );
+  }
+
+  // Show loading screen during app data initialization
   if (state.loading && state.wines.length === 0) {
     return (
       <View style={styles.container}>

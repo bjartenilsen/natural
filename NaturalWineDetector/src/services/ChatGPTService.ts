@@ -12,6 +12,8 @@ import { API_CONFIG, RETRY_CONFIG } from '../utils/constants';
 import { processImageForApi, imageToBase64, validateImageComplete } from '../utils/imageUtils';
 import { ApiKeyService, ApiUsageData } from './ApiKeyService';
 import { ErrorHandler } from '../utils/errorHandler';
+import { NetworkService } from './NetworkService';
+import { OfflineQueueService } from './OfflineQueueService';
 
 /**
  * Service for integrating with OpenAI's ChatGPT API for wine image analysis
@@ -71,15 +73,47 @@ export class ChatGPTService {
   /**
    * Analyze wine image using ChatGPT Vision API
    * @param imageUri - Local file URI of the wine image
+   * @param onOfflineQueued - Callback when request is queued for offline processing
    * @returns Promise<WineAnalysisResult> - Analysis result with confidence score
    */
-  static async analyzeWineImage(imageUri: string): Promise<WineAnalysisResult> {
+  static async analyzeWineImage(
+    imageUri: string, 
+    onOfflineQueued?: (queueId: string) => void
+  ): Promise<WineAnalysisResult> {
     const isConfigured = await this.isConfigured();
     if (!isConfigured) {
       throw ErrorHandler.createApiError({
         message: 'OpenAI API key not configured',
         recoverable: false,
-        endpoint: 'chat/completions',
+        timestamp: new Date(),
+        apiEndpoint: 'chat/completions',
+      });
+    }
+
+    // Check network connectivity
+    const networkService = NetworkService.getInstance();
+    if (networkService.isOffline()) {
+      // Queue request for when connectivity returns
+      const base64Image = await imageToBase64(imageUri);
+      const queueService = OfflineQueueService.getInstance();
+      
+      const queueId = await queueService.addToQueue('api_request', {
+        type: 'wine_analysis',
+        imageBase64: base64Image,
+        originalImageUri: imageUri,
+        timestamp: new Date().toISOString()
+      });
+
+      if (onOfflineQueued) {
+        onOfflineQueued(queueId);
+      }
+
+      throw ErrorHandler.createNetworkError({
+        message: 'No internet connection. Your request has been queued and will be processed when connectivity returns.',
+        recoverable: true,
+        timestamp: new Date(),
+        isOffline: true,
+        context: { queueId }
       });
     }
 
@@ -90,7 +124,8 @@ export class ChatGPTService {
       throw ErrorHandler.createApiError({
         message: `Daily API usage limit exceeded. ${remainingRequests} requests remaining.`,
         recoverable: false,
-        endpoint: 'rate-limit',
+        timestamp: new Date(),
+        apiEndpoint: 'rate-limit',
         rateLimited: true,
       });
     }
@@ -99,10 +134,11 @@ export class ChatGPTService {
       // Validate image before processing
       const validation = await validateImageComplete(imageUri);
       if (!validation.isValid) {
-        throw ErrorHandler.createApiError({
+        throw ErrorHandler.createImageError({
           message: validation.error || 'Invalid image format or size',
           recoverable: false,
-          endpoint: 'validation',
+          timestamp: new Date(),
+          reason: 'invalid_format',
         });
       }
 
@@ -137,8 +173,9 @@ export class ChatGPTService {
       throw ErrorHandler.createApiError({
         message: 'Failed to analyze wine image',
         recoverable: true,
-        endpoint: 'chat/completions',
-        originalError: error as Error,
+        timestamp: new Date(),
+        apiEndpoint: 'chat/completions',
+        context: { originalError: (error as Error)?.message },
       });
     }
   }
@@ -180,8 +217,9 @@ export class ChatGPTService {
     throw ErrorHandler.createApiError({
       message: `Failed after ${RETRY_CONFIG.MAX_ATTEMPTS} attempts`,
       recoverable: false,
-      endpoint: 'chat/completions',
-      originalError: lastError || undefined,
+      timestamp: new Date(),
+      apiEndpoint: 'chat/completions',
+      context: { lastError: lastError?.message },
     });
   }
 
@@ -295,8 +333,9 @@ export class ChatGPTService {
       throw ErrorHandler.createApiError({
         message: 'Failed to parse analysis response',
         recoverable: false,
-        endpoint: 'chat/completions',
-        originalError: error as Error,
+        timestamp: new Date(),
+        apiEndpoint: 'chat/completions',
+        context: { parseError: (error as Error)?.message },
       });
     }
   }
@@ -346,7 +385,8 @@ export class ChatGPTService {
       throw ErrorHandler.createApiError({
         message: `Rate limit exceeded. Please wait ${Math.ceil(waitTime / 1000)} seconds.`,
         recoverable: true,
-        endpoint: 'rate-limit',
+        timestamp: new Date(),
+        apiEndpoint: 'rate-limit',
         rateLimited: true,
       });
     }

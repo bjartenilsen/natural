@@ -14,6 +14,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { WineRecord } from '../types/WineTypes';
+import { useNetworkState } from '../services/NetworkService';
 
 interface WineHistoryProps {
   wines: WineRecord[];
@@ -123,6 +124,7 @@ export const WineHistoryComponent: React.FC<WineHistoryProps> = ({
   onRefresh,
   refreshing = false,
 }) => {
+  const { isOffline } = useNetworkState();
   const renderWineItem = ({ item }: { item: WineRecord }) => (
     <WineListItem wine={item} onPress={onWineSelect} />
   );
@@ -143,6 +145,7 @@ export const WineHistoryComponent: React.FC<WineHistoryProps> = ({
             <Text style={styles.headerTitle}>Wine Collection</Text>
             <Text style={styles.headerSubtitle}>
               {wines.length} wine{wines.length !== 1 ? 's' : ''} analyzed
+              {isOffline && ' • Offline Mode'}
             </Text>
           </View>
           <FlatList
