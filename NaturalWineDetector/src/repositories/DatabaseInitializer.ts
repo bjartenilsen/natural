@@ -18,6 +18,7 @@ export async function initializeDatabase(): Promise<void> {
       type: 'storage',
       message: `Failed to initialize database: ${error}`,
       recoverable: false,
+      timestamp: new Date(),
       operation: 'init',
       originalError: error instanceof Error ? error : new Error(String(error))
     };
@@ -62,6 +63,7 @@ export async function resetDatabase(): Promise<void> {
       type: 'storage',
       message: `Failed to reset database: ${error}`,
       recoverable: false,
+      timestamp: new Date(),
       operation: 'init',
       originalError: error instanceof Error ? error : new Error(String(error))
     };

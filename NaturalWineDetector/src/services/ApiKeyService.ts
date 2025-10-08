@@ -32,6 +32,7 @@ export class ApiKeyService {
       throw ErrorHandler.createApiError({
         message: 'Failed to store API key securely',
         recoverable: false,
+        timestamp: new Date(),
         apiEndpoint: 'secure-storage',
         originalError: error as Error,
       });
@@ -51,6 +52,7 @@ export class ApiKeyService {
       throw ErrorHandler.createApiError({
         message: 'Failed to retrieve API key',
         recoverable: false,
+        timestamp: new Date(),
         apiEndpoint: 'secure-storage',
         originalError: error as Error,
       });
@@ -69,6 +71,7 @@ export class ApiKeyService {
       throw ErrorHandler.createApiError({
         message: 'Failed to remove API key',
         recoverable: false,
+        timestamp: new Date(),
         apiEndpoint: 'secure-storage',
         originalError: error as Error,
       });
@@ -166,6 +169,7 @@ export class ApiKeyService {
       throw ErrorHandler.createApiError({
         message: 'Failed to store API settings',
         recoverable: false,
+        timestamp: new Date(),
         apiEndpoint: 'secure-storage',
         originalError: error as Error,
       });

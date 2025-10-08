@@ -82,7 +82,7 @@ export interface ApiConfig {
 /**
  * API retry configuration
  */
-export interface RetryConfig {
+export interface ApiRetryConfig {
   maxAttempts: number;
   baseDelay: number;
   maxDelay: number;

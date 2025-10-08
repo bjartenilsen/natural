@@ -4,7 +4,7 @@ import {
   ChatGPTRequest, 
   ChatGPTResponse, 
   ParsedWineAnalysis,
-  RetryConfig,
+  ApiRetryConfig,
   ApiConfig 
 } from '../types/ApiTypes';
 import { ApiError } from '../types/ErrorTypes';
