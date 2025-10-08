@@ -34,6 +34,7 @@ export class LocationService {
           reason: 'unavailable',
           message: 'Location services are disabled on this device',
           recoverable: true,
+          timestamp: new Date(),
         });
       }
 
@@ -47,6 +48,7 @@ export class LocationService {
           reason: 'permission_denied',
           message: 'Location permission was denied',
           recoverable: true,
+          timestamp: new Date(),
         });
       }
     } catch (error) {
@@ -58,6 +60,7 @@ export class LocationService {
         reason: 'permission_denied',
         message: 'Failed to request location permission',
         recoverable: true,
+        timestamp: new Date(),
         originalError: error as Error,
       });
     }
@@ -80,6 +83,7 @@ export class LocationService {
             reason: 'permission_denied',
             message: 'Location permission is required to capture location data',
             recoverable: true,
+            timestamp: new Date(),
           });
         }
       }
@@ -92,6 +96,7 @@ export class LocationService {
             reason: 'timeout',
             message: 'Location request timed out',
             recoverable: true,
+            timestamp: new Date(),
           }));
         }, this.LOCATION_TIMEOUT);
       });
@@ -104,6 +109,7 @@ export class LocationService {
           reason: 'unavailable',
           message: 'Unable to retrieve location data',
           recoverable: true,
+          timestamp: new Date(),
         });
       }
 
@@ -115,6 +121,7 @@ export class LocationService {
           reason: 'unavailable',
           message: 'Invalid location coordinates received',
           recoverable: true,
+          timestamp: new Date(),
         });
       }
 
@@ -147,6 +154,7 @@ export class LocationService {
               reason: 'unavailable',
               message: 'Location services are disabled',
               recoverable: true,
+              timestamp: new Date(),
               originalError: error as unknown as Error,
             });
           
@@ -155,6 +163,7 @@ export class LocationService {
               reason: 'permission_denied',
               message: 'Location permission denied',
               recoverable: true,
+              timestamp: new Date(),
               originalError: error as unknown as Error,
             });
           
@@ -163,6 +172,7 @@ export class LocationService {
               reason: 'unavailable',
               message: 'Failed to get current location',
               recoverable: true,
+              timestamp: new Date(),
               originalError: error as unknown as Error,
             });
         }
@@ -172,6 +182,7 @@ export class LocationService {
         reason: 'unavailable',
         message: 'An unexpected error occurred while getting location',
         recoverable: true,
+        timestamp: new Date(),
         originalError: error as Error,
       });
     }

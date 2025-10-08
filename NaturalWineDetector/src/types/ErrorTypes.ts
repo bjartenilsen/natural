@@ -22,6 +22,7 @@ export interface ApiError extends AppError {
   rateLimited?: boolean;
   apiEndpoint?: string;
   requestId?: string;
+  originalError?: Error;
 }
 
 /**
@@ -52,6 +53,7 @@ export interface StorageError extends AppError {
   isStorageFull?: boolean;
   operation?: 'read' | 'write' | 'delete' | 'init';
   tableName?: string;
+  originalError?: Error;
 }
 
 /**
@@ -71,6 +73,7 @@ export interface LocationError extends AppError {
   type: 'location';
   reason?: 'permission_denied' | 'unavailable' | 'timeout' | 'accuracy_low';
   accuracy?: number;
+  originalError?: Error;
 }
 
 /**
