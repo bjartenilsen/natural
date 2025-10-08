@@ -10,7 +10,8 @@
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
     "type-check": "tsc --noEmit",
-    "check-node": "node scripts/check-node-version.js"
+    "check-node": "node scripts/check-node-version.js",
+    "test-eas": "node scripts/test-eas-setup.js"
   },
   "dependencies": {
     "@bam.tech/react-native-image-resizer": "^3.0.11",

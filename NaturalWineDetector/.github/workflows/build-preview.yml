@@ -46,13 +46,20 @@ jobs:
       - name: Run ESLint
         run: npm run lint
 
-      - name: Setup Expo and EAS
+      - name: Setup EAS CLI
         if: env.SKIP_BUILD == 'false'
-        uses: expo/expo-github-action@v8
-        with:
-          expo-version: latest
-          eas-version: latest
-          token: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npm install -g @expo/cli@latest eas-cli@latest
+          echo "EAS CLI version: $(eas --version)"
+          echo "Expo CLI version: $(npx expo --version)"
+
+      - name: Authenticate with Expo
+        if: env.SKIP_BUILD == 'false'
+        run: |
+          echo "Authenticating with Expo..."
+          eas login --non-interactive
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build Android APK
         if: env.SKIP_BUILD == 'false'

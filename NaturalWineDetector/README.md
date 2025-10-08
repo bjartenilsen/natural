@@ -26,10 +26,26 @@ src/
 
 ## Prerequisites
 
-- **Node.js**: Version 20.0.0 or higher
+- **Node.js**: Version 20.0.0 or higher (required for compatibility)
 - **npm**: Latest version
 - **Expo CLI**: `npm install -g @expo/cli`
 - **EAS CLI**: `npm install -g eas-cli` (for building)
+
+### Node.js Version Requirements
+
+This project requires Node.js 20+ due to dependency compatibility issues. If you encounter errors like:
+```
+error minimatch@10.0.3: The engine "node" is incompatible with this module. Expected version "20 || >=22". Got "18.x.x"
+```
+
+**Solutions:**
+1. **Upgrade Node.js**: Download Node.js 20+ from [nodejs.org](https://nodejs.org/)
+2. **Use nvm** (recommended):
+   ```bash
+   nvm install 20.11.1
+   nvm use 20.11.1
+   ```
+3. **Check version**: `node --version` should show 20.x.x or higher
 
 ## Getting Started
 
@@ -65,6 +81,32 @@ This project follows clean architecture principles with clear separation between
 - UI Layer (Components/Screens)
 - Business Logic Layer (Services/Hooks)
 - Data Layer (Repositories)
+
+## Building with EAS
+
+To build the app for production:
+
+1. **Install EAS CLI**:
+   ```bash
+   npm install -g eas-cli
+   ```
+
+2. **Login to Expo**:
+   ```bash
+   eas login
+   ```
+
+3. **Build for Android**:
+   ```bash
+   eas build --platform android --profile preview
+   ```
+
+### GitHub Actions Setup
+
+For automated builds, add an `EXPO_TOKEN` secret to your repository:
+1. Go to your Expo account settings
+2. Generate an access token
+3. Add it as `EXPO_TOKEN` in GitHub repository secrets
 
 ## Dependencies
 
