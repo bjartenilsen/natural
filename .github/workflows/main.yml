@@ -1,0 +1,36 @@
+name: Natural Wine Detector CI/CD
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  redirect:
+    name: Redirect to NaturalWineDetector workflows
+    runs-on: ubuntu-latest
+    steps:
+      - name: Info
+        run: |
+          echo "ℹ️  This repository uses workflows located in NaturalWineDetector/.github/workflows/"
+          echo "The actual CI/CD processes are handled there."
+          echo "This workflow exists to prevent confusion about workflow locations."
+          
+      - name: Checkout
+        uses: actions/checkout@v4
+        
+      - name: Setup Node.js 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.11.1'
+          
+      - name: Verify project structure
+        run: |
+          echo "Project structure:"
+          ls -la
+          echo ""
+          echo "NaturalWineDetector directory:"
+          ls -la NaturalWineDetector/
+          echo ""
+          echo "✅ Project structure verified"
