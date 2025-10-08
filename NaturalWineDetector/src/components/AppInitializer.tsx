@@ -4,6 +4,7 @@
 import React, { ReactNode, useEffect, useState } from 'react';
 import { View, Text, StyleSheet, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useAppContext } from '../context/AppContext';
+import { SplashScreen } from './SplashScreen';
 import { NetworkService } from '../services/NetworkService';
 import { OfflineQueueService } from '../services/OfflineQueueService';
 import { MemoryManager } from '../utils/MemoryManager';
@@ -16,6 +17,7 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
   const { state, actions } = useAppContext();
   const [servicesInitialized, setServicesInitialized] = useState(false);
   const [initializationError, setInitializationError] = useState<string | null>(null);
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
     initializeServices();
@@ -36,7 +38,7 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
       await networkService.initialize();
 
       // Initialize offline queue service
-      const offlineQueueService = OfflineQueueService.getInstance();
+      OfflineQueueService.getInstance();
       // Queue service initializes itself in constructor
 
       setServicesInitialized(true);
@@ -47,6 +49,13 @@ export const AppInitializer: React.FC<AppInitializerProps> = ({ children }) => {
       );
     }
   };
+
+  // Show splash screen first
+  if (showSplash) {
+    return (
+      <SplashScreen onFinish={() => setShowSplash(false)} />
+    );
+  }
 
   // Show loading screen during service initialization
   if (!servicesInitialized && !initializationError) {

@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text } from 'react-native';
+import { View, StyleSheet, Text, Alert } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/AppTypes';
 import { WineDetailComponent } from '../components/WineDetailComponent';
+import { ScreenTransition } from '../components/ScreenTransition';
+import { LoadingOverlay } from '../components/LoadingOverlay';
 import { useWineRepository } from '../hooks/useWineRepository';
 import { WineRecord } from '../types/WineTypes';
 
@@ -22,8 +24,11 @@ export const WineDetailScreen: React.FC<Props> = ({ route, navigation }) => {
         setWine(wineRecord);
       } catch (error) {
         console.error('Failed to load wine:', error);
-        // Navigate back if wine not found
-        navigation.goBack();
+        Alert.alert(
+          'Wine Not Found',
+          'The requested wine record could not be found.',
+          [{ text: 'OK', onPress: () => navigation.goBack() }]
+        );
       } finally {
         setLoading(false);
       }
@@ -32,26 +37,24 @@ export const WineDetailScreen: React.FC<Props> = ({ route, navigation }) => {
     loadWine();
   }, [wineId, navigation]);
 
-  if (loading) {
-    return (
-      <View style={[styles.container, styles.centered]}>
-        <Text>Loading wine details...</Text>
-      </View>
-    );
-  }
-
-  if (!wine) {
-    return (
-      <View style={[styles.container, styles.centered]}>
-        <Text>Wine not found</Text>
-      </View>
-    );
-  }
-
   return (
-    <View style={styles.container}>
-      <WineDetailComponent wine={wine} />
-    </View>
+    <ScreenTransition isVisible={!loading} animationType="scale">
+      <View style={styles.container}>
+        {wine ? (
+          <WineDetailComponent wine={wine} />
+        ) : (
+          <View style={styles.centered}>
+            <Text style={styles.notFoundText}>Wine not found</Text>
+          </View>
+        )}
+        
+        <LoadingOverlay
+          visible={loading}
+          message="Loading Wine Details"
+          subMessage="Retrieving wine information..."
+        />
+      </View>
+    </ScreenTransition>
   );
 };
 
@@ -61,7 +64,12 @@ const styles = StyleSheet.create({
     backgroundColor: '#fff',
   },
   centered: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  notFoundText: {
+    fontSize: 16,
+    color: '#6B7280',
   },
 });

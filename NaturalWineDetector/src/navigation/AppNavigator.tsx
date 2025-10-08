@@ -1,7 +1,9 @@
 import React from 'react';
+import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/AppTypes';
+import { WorkflowStatus } from '../components/WorkflowStatus';
 import {
   CameraScreen,
   AnalysisScreen,
@@ -15,7 +17,9 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 export const AppNavigator: React.FC = () => {
   return (
-    <NavigationContainer>
+    <View style={{ flex: 1 }}>
+      <WorkflowStatus showProgress={true} position="top" />
+      <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Camera"
         screenOptions={{
@@ -25,6 +29,20 @@ export const AppNavigator: React.FC = () => {
           headerTintColor: '#fff',
           headerTitleStyle: {
             fontWeight: 'bold',
+          },
+          cardStyleInterpolator: ({ current, layouts }) => {
+            return {
+              cardStyle: {
+                transform: [
+                  {
+                    translateX: current.progress.interpolate({
+                      inputRange: [0, 1],
+                      outputRange: [layouts.screen.width, 0],
+                    }),
+                  },
+                ],
+              },
+            };
           },
         }}
       >
@@ -73,5 +91,6 @@ export const AppNavigator: React.FC = () => {
         />
       </Stack.Navigator>
     </NavigationContainer>
+    </View>
   );
 };
