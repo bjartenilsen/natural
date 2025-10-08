@@ -32,7 +32,7 @@ export class ApiKeyService {
       throw ErrorHandler.createApiError({
         message: 'Failed to store API key securely',
         recoverable: false,
-        endpoint: 'secure-storage',
+        apiEndpoint: 'secure-storage',
         originalError: error as Error,
       });
     }
@@ -51,7 +51,7 @@ export class ApiKeyService {
       throw ErrorHandler.createApiError({
         message: 'Failed to retrieve API key',
         recoverable: false,
-        endpoint: 'secure-storage',
+        apiEndpoint: 'secure-storage',
         originalError: error as Error,
       });
     }
@@ -69,7 +69,7 @@ export class ApiKeyService {
       throw ErrorHandler.createApiError({
         message: 'Failed to remove API key',
         recoverable: false,
-        endpoint: 'secure-storage',
+        apiEndpoint: 'secure-storage',
         originalError: error as Error,
       });
     }
@@ -166,7 +166,7 @@ export class ApiKeyService {
       throw ErrorHandler.createApiError({
         message: 'Failed to store API settings',
         recoverable: false,
-        endpoint: 'secure-storage',
+        apiEndpoint: 'secure-storage',
         originalError: error as Error,
       });
     }

@@ -50,7 +50,7 @@ export interface PermissionError extends AppError {
 export interface StorageError extends AppError {
   type: 'storage';
   isStorageFull?: boolean;
-  operation?: 'read' | 'write' | 'delete';
+  operation?: 'read' | 'write' | 'delete' | 'init';
   tableName?: string;
 }
 
