@@ -10,6 +10,21 @@ import {
 } from '../types/ErrorTypes';
 
 /**
+ * Simple error handler function for converting errors to user-friendly messages
+ * @param error - The error to handle
+ * @returns User-friendly error message
+ */
+export const handleError = (error: unknown): string => {
+  if (error instanceof Error) {
+    return error.message;
+  }
+  if (typeof error === 'string') {
+    return error;
+  }
+  return 'An unexpected error occurred';
+};
+
+/**
  * Error handling utilities for creating and managing application errors
  */
 export class ErrorHandler {
