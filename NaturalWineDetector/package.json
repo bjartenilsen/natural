@@ -14,16 +14,18 @@
     "test-eas": "node scripts/test-eas-setup.js"
   },
   "dependencies": {
-    "@bam.tech/react-native-image-resizer": "^3.0.11",
+
     "@react-native-async-storage/async-storage": "^2.1.0",
     "@react-native-community/netinfo": "^11.3.1",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
     "axios": "^1.12.2",
     "expo": "~52.0.0",
+    "expo-asset": "^12.0.9",
     "expo-camera": "~16.0.0",
     "expo-crypto": "~14.0.0",
     "expo-file-system": "~18.0.0",
+    "expo-image-manipulator": "^14.0.7",
     "expo-image-picker": "~16.0.0",
     "expo-location": "~18.0.0",
     "expo-secure-store": "~14.0.0",

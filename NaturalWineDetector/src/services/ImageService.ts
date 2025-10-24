@@ -3,8 +3,8 @@
  * Handles compression, resizing, validation, and cleanup
  */
 
-import ImageResizer from '@bam.tech/react-native-image-resizer';
 import * as FileSystem from 'expo-file-system';
+import { manipulateAsync, SaveFormat, ImageResult } from 'expo-image-manipulator';
 import { ErrorHandler } from '../utils/errorHandler';
 import { MemoryManager } from '../utils/MemoryManager';
 import { PerformanceMonitor } from '../utils/PerformanceMonitor';
@@ -255,11 +255,12 @@ export class ImageService {
         throw new Error('Image file does not exist');
       }
 
-      // For basic file info, we'll use a simple approach
-      // In a real implementation, you might want to use a library to get actual image dimensions
+      // Use expo-image-manipulator to get actual image dimensions
+      const result = await manipulateAsync(imageUri, [], { format: SaveFormat.JPEG });
+      
       return {
-        width: 1000, // Placeholder - would need actual image dimension reading
-        height: 1000, // Placeholder - would need actual image dimension reading
+        width: result.width,
+        height: result.height,
         size: (fileInfo as any).size || 0,
       };
     } catch (error) {
@@ -273,22 +274,42 @@ export class ImageService {
   }
 
   /**
-   * Resize image using react-native-image-resizer
+   * Resize image using expo-image-manipulator
    */
   private static async resizeImage(
     imageUri: string,
     options: Required<ImageProcessingOptions>
   ): Promise<{ uri: string }> {
     try {
-      const result = await ImageResizer.createResizedImage(
+      // Convert format to SaveFormat
+      let saveFormat: SaveFormat;
+      switch (options.format) {
+        case 'PNG':
+          saveFormat = SaveFormat.PNG;
+          break;
+        case 'WEBP':
+          saveFormat = SaveFormat.WEBP;
+          break;
+        case 'JPEG':
+        default:
+          saveFormat = SaveFormat.JPEG;
+          break;
+      }
+
+      const result: ImageResult = await manipulateAsync(
         imageUri,
-        options.maxWidth,
-        options.maxHeight,
-        options.format,
-        options.quality * 100, // Convert to percentage
-        0, // rotation
-        undefined, // outputPath
-        options.keepAspectRatio
+        [
+          {
+            resize: {
+              width: options.maxWidth,
+              height: options.maxHeight,
+            },
+          },
+        ],
+        {
+          compress: options.quality,
+          format: saveFormat,
+        }
       );
 
       return { uri: result.uri };

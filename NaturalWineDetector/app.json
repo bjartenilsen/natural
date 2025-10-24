@@ -8,7 +8,7 @@
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "description": "AI-powered natural wine detection using image analysis",
-    "keywords": ["wine", "natural wine", "AI", "image analysis", "food", "beverage"],
+
     "primaryColor": "#6B46C1",
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -34,14 +34,16 @@
       },
       "package": "com.naturalwinedetector.app",
       "versionCode": 1,
-      "edgeToEdgeEnabled": true,
-      "predictiveBackGestureEnabled": false,
       "permissions": [
         "CAMERA",
         "ACCESS_FINE_LOCATION",
         "ACCESS_COARSE_LOCATION",
         "WRITE_EXTERNAL_STORAGE",
-        "READ_EXTERNAL_STORAGE"
+        "READ_EXTERNAL_STORAGE",
+        "android.permission.CAMERA",
+        "android.permission.RECORD_AUDIO",
+        "android.permission.ACCESS_COARSE_LOCATION",
+        "android.permission.ACCESS_FINE_LOCATION"
       ]
     },
     "web": {
@@ -61,6 +63,11 @@
           "locationAlwaysAndWhenInUsePermission": "Allow Natural Wine Detector to use your location to tag where wine photos were taken."
         }
       ]
-    ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "7a91ae1c-a5b7-463b-a768-8755991ae79b"
+      }
+    }
   }
 }
