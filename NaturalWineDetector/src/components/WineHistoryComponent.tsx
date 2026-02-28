@@ -16,6 +16,9 @@ import {
 import { WineRecord } from '../types/WineTypes';
 import { useNetworkState } from '../hooks/useNetworkState';
 
+/** Estimated item height (content + padding + margins) for getItemLayout */
+const ITEM_HEIGHT = 120;
+
 interface WineHistoryProps {
   wines: WineRecord[];
   onWineSelect: (wine: WineRecord) => void;
@@ -155,6 +158,14 @@ export const WineHistoryComponent: React.FC<WineHistoryProps> = ({
             style={styles.list}
             contentContainerStyle={styles.listContent}
             showsVerticalScrollIndicator={false}
+            getItemLayout={(_data, index) => ({
+              length: ITEM_HEIGHT,
+              offset: ITEM_HEIGHT * index,
+              index,
+            })}
+            initialNumToRender={10}
+            maxToRenderPerBatch={10}
+            windowSize={5}
             refreshControl={
               onRefresh ? (
                 <RefreshControl
