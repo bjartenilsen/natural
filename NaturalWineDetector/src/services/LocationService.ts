@@ -6,6 +6,7 @@
 import * as Location from 'expo-location';
 import { LocationData } from '../types/WineTypes';
 import { ErrorHandler } from '../utils/errorHandler';
+import { isAppErrorOfType } from '../utils/typeGuards';
 
 export class LocationService {
   // Minimum accuracy threshold in meters (50m is reasonable for wine location tracking)
@@ -52,7 +53,7 @@ export class LocationService {
         });
       }
     } catch (error) {
-      if (error && typeof error === 'object' && 'type' in error && error.type === 'location') {
+      if (isAppErrorOfType(error, 'location')) {
         throw error;
       }
       
@@ -140,7 +141,7 @@ export class LocationService {
       };
 
     } catch (error) {
-      if (error && typeof error === 'object' && 'type' in error && error.type === 'location') {
+      if (isAppErrorOfType(error, 'location')) {
         throw error;
       }
 

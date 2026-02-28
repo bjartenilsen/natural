@@ -4,3 +4,4 @@ export * from './imageUtils';
 export * from './constants';
 export * from './MemoryManager';
 export * from './PerformanceMonitor';
+export * from './typeGuards';

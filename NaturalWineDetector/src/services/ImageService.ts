@@ -6,6 +6,7 @@
 import * as FileSystem from 'expo-file-system';
 import { manipulateAsync, SaveFormat, ImageResult } from 'expo-image-manipulator';
 import { ErrorHandler } from '../utils/errorHandler';
+import { isAppErrorOfType } from '../utils/typeGuards';
 import { MemoryManager } from '../utils/MemoryManager';
 import { PerformanceMonitor } from '../utils/PerformanceMonitor';
 
@@ -123,7 +124,7 @@ export class ImageService {
           };
 
         } catch (error) {
-          if (error && typeof error === 'object' && 'type' in error && error.type === 'image') {
+          if (isAppErrorOfType(error, 'image')) {
             throw error;
           }
 
