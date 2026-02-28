@@ -4,6 +4,7 @@ import {
   Text,
   StyleSheet,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useWorkflow } from './WorkflowManager';
 
 interface WorkflowStatusProps {
@@ -16,6 +17,7 @@ export const WorkflowStatus: React.FC<WorkflowStatusProps> = ({
   position = 'top',
 }) => {
   const { state } = useWorkflow();
+  const insets = useSafeAreaInsets();
 
   if (!showProgress) {
     return null;
@@ -44,7 +46,9 @@ export const WorkflowStatus: React.FC<WorkflowStatusProps> = ({
   return (
     <View style={[
       styles.container,
-      position === 'bottom' && styles.containerBottom
+      position === 'top' && { paddingTop: insets.top },
+      position === 'bottom' && styles.containerBottom,
+      position === 'bottom' && { paddingBottom: insets.bottom },
     ]}>
       <View style={styles.content}>
         <View style={styles.stepInfo}>

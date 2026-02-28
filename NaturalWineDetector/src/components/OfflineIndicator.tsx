@@ -4,6 +4,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNetworkState } from '../hooks/useNetworkState';
 
 interface OfflineIndicatorProps {
@@ -16,6 +17,7 @@ export const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({
   position = 'top'
 }) => {
   const { isOffline } = useNetworkState();
+  const insets = useSafeAreaInsets();
   const [slideAnim] = React.useState(new Animated.Value(isOffline ? 0 : -50));
   const [wasOffline, setWasOffline] = React.useState(isOffline);
 
@@ -81,6 +83,8 @@ export const OfflineIndicator: React.FC<OfflineIndicatorProps> = ({
   const containerStyle = [
     styles.container,
     position === 'bottom' ? styles.bottom : styles.top,
+    position === 'top' && { paddingTop: insets.top },
+    position === 'bottom' && { paddingBottom: insets.bottom },
     { backgroundColor: getStatusColor() }
   ];
 
@@ -127,7 +131,6 @@ const styles = StyleSheet.create({
   },
   top: {
     top: 0,
-    paddingTop: 50, // Account for status bar
   },
   bottom: {
     bottom: 0,
