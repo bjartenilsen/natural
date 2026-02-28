@@ -64,7 +64,7 @@ export const WorkflowManager: React.FC<WorkflowManagerProps> = ({ children }) =>
       }));
     },
 
-    completeLogging: () => {
+    completeLogging: (_wineRecord: WineRecord) => {
       setState(prev => ({
         ...prev,
         currentStep: 'history',
