@@ -36,7 +36,7 @@ export class OfflineQueueService {
     return OfflineQueueService.instance;
   }
 
-  constructor() {
+  private constructor() {
     this.networkService = NetworkService.getInstance();
     this.initialize();
   }
