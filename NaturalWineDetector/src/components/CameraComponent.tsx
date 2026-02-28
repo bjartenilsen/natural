@@ -1,9 +1,9 @@
 /**
  * Camera component for wine bottle photo capture
- * Integrates camera functionality with automatic GPS location capture
+ * Uses expo-camera CameraView for live preview with GPS location capture
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import {
   View,
   Text,
@@ -12,117 +12,96 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
+import { CameraView, useCameraPermissions } from 'expo-camera';
 import * as ImagePicker from 'expo-image-picker';
 import { LocationData } from '../types/WineTypes';
 import { LocationService } from '../services/LocationService';
 import { usePermissions } from '../hooks/usePermissions';
-import { PermissionGuard } from './PermissionGuard';
 
 interface CameraComponentProps {
   onImageCaptured: (imageUri: string, location?: LocationData) => void;
   onError: (error: string) => void;
+  onHistoryPress?: () => void;
 }
 
 const { width } = Dimensions.get('window');
 
-const CameraInterface: React.FC<CameraComponentProps> = ({
+export const CameraComponent: React.FC<CameraComponentProps> = ({
   onImageCaptured,
   onError,
+  onHistoryPress,
 }) => {
+  const [permission, requestPermission] = useCameraPermissions();
   const [isCapturing, setIsCapturing] = useState(false);
   const { canUseLocation, canUseMediaLibrary } = usePermissions();
+  const cameraRef = useRef<CameraView>(null);
+
+  // Loading permission state
+  if (!permission) {
+    return (
+      <View style={styles.permissionContainer}>
+        <ActivityIndicator size="large" color="#8B5A3C" />
+        <Text style={styles.permissionText}>Checking camera permissions...</Text>
+      </View>
+    );
+  }
+
+  // Permission not granted - show request screen
+  if (!permission.granted) {
+    return (
+      <View style={styles.permissionContainer}>
+        <Text style={styles.permissionIcon}>📷</Text>
+        <Text style={styles.permissionTitle}>Camera Access Required</Text>
+        <Text style={styles.permissionText}>
+          To analyze wine bottles, we need access to your camera to take photos.
+        </Text>
+        <TouchableOpacity style={styles.permissionButton} onPress={requestPermission}>
+          <Text style={styles.permissionButtonText}>Grant Camera Access</Text>
+        </TouchableOpacity>
+        {onHistoryPress && (
+          <TouchableOpacity style={styles.historyLinkButton} onPress={onHistoryPress}>
+            <Text style={styles.historyLinkText}>View Wine History</Text>
+          </TouchableOpacity>
+        )}
+      </View>
+    );
+  }
 
   /**
-   * Validate image quality and format
-   */
-  const validateImage = (result: ImagePicker.ImagePickerResult): boolean => {
-    if (result.canceled || !result.assets || result.assets.length === 0) {
-      return false;
-    }
-
-    const asset = result.assets[0];
-    
-    // Check if image exists and has valid URI
-    if (!asset.uri) {
-      onError('Invalid image: No image data received');
-      return false;
-    }
-
-    // Check image dimensions (minimum size for wine bottle recognition)
-    if (asset.width && asset.height) {
-      const minDimension = Math.min(asset.width, asset.height);
-      if (minDimension < 200) {
-        onError('Image quality too low. Please take a clearer photo of the wine bottle.');
-        return false;
-      }
-    }
-
-    // Check file size (basic validation)
-    if (asset.fileSize && asset.fileSize > 50 * 1024 * 1024) { // 50MB limit
-      onError('Image file too large. Please try again.');
-      return false;
-    }
-
-    return true;
-  };
-
-  /**
-   * Capture photo with automatic location
+   * Capture photo from the live camera preview
    */
   const capturePhoto = async () => {
+    if (!cameraRef.current || isCapturing) return;
+
     setIsCapturing(true);
     let capturedLocation: LocationData | undefined;
 
     try {
-      // Attempt to get location first (optional)
+      // Attempt to get location (optional)
       if (canUseLocation()) {
         try {
           const location = await LocationService.getCurrentLocationWithFallback();
           capturedLocation = location || undefined;
         } catch (error) {
           console.warn('Failed to get location, continuing without it:', error);
-          // Continue without location - it's optional
         }
       }
 
-      // Launch camera
-      const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ['images'],
-        allowsEditing: true,
-        aspect: [3, 4], // Good aspect ratio for wine bottles
-        quality: 0.8, // Balance between quality and file size
-        exif: false, // Don't include EXIF data for privacy
+      // Take picture from the live preview
+      const photo = await cameraRef.current.takePictureAsync({
+        quality: 0.8,
+        skipProcessing: false,
       });
 
-      // Validate the captured image
-      if (!validateImage(result)) {
+      if (!photo || !photo.uri) {
+        onError('Failed to capture photo. Please try again.');
         return;
       }
 
-      const imageUri = result.assets![0].uri;
-      
-      // Call the callback with image and location
-      onImageCaptured(imageUri, capturedLocation || undefined);
-
+      onImageCaptured(photo.uri, capturedLocation);
     } catch (error) {
       console.error('Error capturing photo:', error);
-      
-      if (error && typeof error === 'object' && 'code' in error) {
-        const imageError = error as any;
-        
-        switch (imageError.code) {
-          case 'E_CAMERA_UNAVAILABLE':
-            onError('Camera is not available on this device');
-            break;
-          case 'E_PERMISSION_MISSING':
-            onError('Camera permission is required to take photos');
-            break;
-          default:
-            onError('Failed to capture photo. Please try again.');
-        }
-      } else {
-        onError('An unexpected error occurred while taking the photo');
-      }
+      onError('Failed to capture photo. Please try again.');
     } finally {
       setIsCapturing(false);
     }
@@ -140,7 +119,6 @@ const CameraInterface: React.FC<CameraComponentProps> = ({
     setIsCapturing(true);
 
     try {
-      // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsEditing: true,
@@ -149,16 +127,17 @@ const CameraInterface: React.FC<CameraComponentProps> = ({
         exif: false,
       });
 
-      // Validate the selected image
-      if (!validateImage(result)) {
+      if (result.canceled || !result.assets || result.assets.length === 0) {
         return;
       }
 
-      const imageUri = result.assets![0].uri;
-      
-      // Note: Gallery images don't have current location, so we pass undefined
-      onImageCaptured(imageUri, undefined);
+      const imageUri = result.assets[0].uri;
+      if (!imageUri) {
+        onError('Invalid image: No image data received');
+        return;
+      }
 
+      onImageCaptured(imageUri, undefined);
     } catch (error) {
       console.error('Error selecting from gallery:', error);
       onError('Failed to select photo from gallery. Please try again.');
@@ -169,61 +148,74 @@ const CameraInterface: React.FC<CameraComponentProps> = ({
 
   return (
     <View style={styles.container}>
-      <View style={styles.cameraArea}>
-        <View style={styles.viewfinder}>
-          <View style={styles.viewfinderCorner} />
-          <View style={[styles.viewfinderCorner, styles.topRight]} />
-          <View style={[styles.viewfinderCorner, styles.bottomLeft]} />
-          <View style={[styles.viewfinderCorner, styles.bottomRight]} />
-        </View>
-        
-        <Text style={styles.instructionText}>
-          Position the wine bottle within the frame
-        </Text>
-      </View>
+      {/* Live camera preview */}
+      <CameraView
+        ref={cameraRef}
+        style={styles.camera}
+        facing="back"
+        mode="picture"
+      >
+        {/* Viewfinder overlay */}
+        <View style={styles.overlay}>
+          {/* Top bar with history button */}
+          <View style={styles.topBar}>
+            {onHistoryPress && (
+              <TouchableOpacity style={styles.historyButton} onPress={onHistoryPress}>
+                <Text style={styles.historyButtonText}>History</Text>
+              </TouchableOpacity>
+            )}
+          </View>
 
-      <View style={styles.controlsContainer}>
-        {!canUseLocation() && (
-          <View style={styles.locationWarning}>
-            <Text style={styles.locationWarningText}>
-              📍 Location access denied. Wine location won&apos;t be recorded.
+          {/* Viewfinder frame */}
+          <View style={styles.viewfinderArea}>
+            <View style={styles.viewfinder}>
+              <View style={styles.viewfinderCorner} />
+              <View style={[styles.viewfinderCorner, styles.topRight]} />
+              <View style={[styles.viewfinderCorner, styles.bottomLeft]} />
+              <View style={[styles.viewfinderCorner, styles.bottomRight]} />
+            </View>
+            <Text style={styles.instructionText}>
+              Position the wine bottle within the frame
             </Text>
           </View>
-        )}
 
-        <View style={styles.buttonContainer}>
-          <TouchableOpacity
-            style={[styles.galleryButton, !canUseMediaLibrary() && styles.buttonDisabled]}
-            onPress={selectFromGallery}
-            disabled={isCapturing || !canUseMediaLibrary()}
-          >
-            <Text style={styles.galleryButtonText}>Gallery</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[styles.captureButton, isCapturing && styles.captureButtonDisabled]}
-            onPress={capturePhoto}
-            disabled={isCapturing}
-          >
-            {isCapturing ? (
-              <ActivityIndicator size="large" color="#FFFFFF" />
-            ) : (
-              <View style={styles.captureButtonInner} />
+          {/* Bottom controls */}
+          <View style={styles.controlsContainer}>
+            {!canUseLocation() && (
+              <View style={styles.locationWarning}>
+                <Text style={styles.locationWarningText}>
+                  📍 Location access denied. Wine location won&apos;t be recorded.
+                </Text>
+              </View>
             )}
-          </TouchableOpacity>
 
-          <View style={styles.placeholder} />
+            <View style={styles.buttonContainer}>
+              <TouchableOpacity
+                style={[styles.galleryButton, !canUseMediaLibrary() && styles.buttonDisabled]}
+                onPress={selectFromGallery}
+                disabled={isCapturing || !canUseMediaLibrary()}
+              >
+                <Text style={styles.galleryButtonText}>Gallery</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.captureButton, isCapturing && styles.captureButtonDisabled]}
+                onPress={capturePhoto}
+                disabled={isCapturing}
+              >
+                {isCapturing ? (
+                  <ActivityIndicator size="large" color="#FFFFFF" />
+                ) : (
+                  <View style={styles.captureButtonInner} />
+                )}
+              </TouchableOpacity>
+
+              <View style={styles.placeholder} />
+            </View>
+          </View>
         </View>
-      </View>
+      </CameraView>
     </View>
-  );
-};
-
-export const CameraComponent: React.FC<CameraComponentProps> = (props) => {
-  return (
-    <PermissionGuard requiredPermissions={['camera']}>
-      <CameraInterface {...props} />
-    </PermissionGuard>
   );
 };
 
@@ -232,15 +224,37 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: '#000000',
   },
-  cameraArea: {
+  camera: {
     flex: 1,
-    justifyContent: 'center',
+  },
+  overlay: {
+    flex: 1,
+    backgroundColor: 'transparent',
+    justifyContent: 'space-between',
+  },
+  topBar: {
+    flexDirection: 'row',
+    justifyContent: 'flex-end',
+    paddingTop: 16,
+    paddingHorizontal: 20,
+  },
+  historyButton: {
+    backgroundColor: '#6B46C1',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+  },
+  historyButtonText: {
+    color: '#fff',
+    fontWeight: 'bold',
+    fontSize: 14,
+  },
+  viewfinderArea: {
     alignItems: 'center',
-    position: 'relative',
   },
   viewfinder: {
-    width: width * 0.8,
-    height: width * 0.8 * 1.33, // 3:4 aspect ratio
+    width: width * 0.75,
+    height: width * 0.75 * 1.33,
     position: 'relative',
   },
   viewfinderCorner: {
@@ -259,7 +273,7 @@ const styles = StyleSheet.create({
   topRight: {
     top: 0,
     right: 0,
-    left: 'auto',
+    left: undefined,
     borderTopWidth: 3,
     borderRightWidth: 3,
     borderLeftWidth: 0,
@@ -268,7 +282,7 @@ const styles = StyleSheet.create({
   bottomLeft: {
     bottom: 0,
     left: 0,
-    top: 'auto',
+    top: undefined,
     borderBottomWidth: 3,
     borderLeftWidth: 3,
     borderTopWidth: 0,
@@ -277,8 +291,8 @@ const styles = StyleSheet.create({
   bottomRight: {
     bottom: 0,
     right: 0,
-    top: 'auto',
-    left: 'auto',
+    top: undefined,
+    left: undefined,
     borderBottomWidth: 3,
     borderRightWidth: 3,
     borderTopWidth: 0,
@@ -288,11 +302,14 @@ const styles = StyleSheet.create({
     color: '#FFFFFF',
     fontSize: 16,
     textAlign: 'center',
-    marginTop: 24,
+    marginTop: 16,
     paddingHorizontal: 32,
+    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowOffset: { width: 0, height: 1 },
+    textShadowRadius: 3,
   },
   controlsContainer: {
-    paddingBottom: 50,
+    paddingBottom: 40,
     paddingHorizontal: 32,
   },
   locationWarning: {
@@ -347,6 +364,52 @@ const styles = StyleSheet.create({
     backgroundColor: '#8B5A3C',
   },
   placeholder: {
-    width: 80, // Same width as gallery button to center the capture button
+    width: 80,
+  },
+  permissionContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: '#F5F5F5',
+    padding: 32,
+  },
+  permissionIcon: {
+    fontSize: 48,
+    marginBottom: 16,
+  },
+  permissionTitle: {
+    fontSize: 22,
+    fontWeight: 'bold',
+    color: '#8B5A3C',
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+  permissionText: {
+    fontSize: 16,
+    color: '#666666',
+    textAlign: 'center',
+    marginBottom: 24,
+    marginTop: 8,
+    lineHeight: 24,
+  },
+  permissionButton: {
+    backgroundColor: '#8B5A3C',
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 8,
+    marginBottom: 16,
+  },
+  permissionButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
+  },
+  historyLinkButton: {
+    paddingVertical: 8,
+  },
+  historyLinkText: {
+    color: '#6B46C1',
+    fontSize: 14,
+    fontWeight: '500',
   },
 });

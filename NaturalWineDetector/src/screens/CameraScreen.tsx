@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, StyleSheet, TouchableOpacity, Text, Alert } from 'react-native';
+import { View, StyleSheet, Alert } from 'react-native';
 import { StackScreenProps } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/AppTypes';
 import { CameraComponent } from '../components/CameraComponent';
@@ -58,19 +58,10 @@ export const CameraScreen: React.FC<Props> = ({ navigation }) => {
   return (
     <ScreenTransition isVisible={!isNavigating} animationType="fade">
       <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity 
-            style={styles.historyButton} 
-            onPress={navigateToHistory}
-            disabled={isCapturing}
-          >
-            <Text style={styles.historyButtonText}>History</Text>
-          </TouchableOpacity>
-        </View>
-        
         <CameraComponent
           onImageCaptured={handleImageCaptured}
           onError={handleError}
+          onHistoryPress={navigateToHistory}
         />
         
         <LoadingOverlay
@@ -87,21 +78,5 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: '#000',
-  },
-  header: {
-    position: 'absolute',
-    top: 50,
-    right: 20,
-    zIndex: 1,
-  },
-  historyButton: {
-    backgroundColor: '#6B46C1',
-    paddingHorizontal: 16,
-    paddingVertical: 8,
-    borderRadius: 8,
-  },
-  historyButtonText: {
-    color: '#fff',
-    fontWeight: 'bold',
   },
 });
