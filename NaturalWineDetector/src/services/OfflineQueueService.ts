@@ -68,7 +68,7 @@ export class OfflineQueueService {
     maxAttempts = 3
   ): Promise<string> {
     const item: OfflineQueueItem = {
-      id: `queue_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `queue_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       type,
       data,
       timestamp: new Date(),

@@ -49,7 +49,7 @@ export class ErrorHandler {
    */
   static logError(error: AppError): void {
     const logEntry: ErrorLogEntry = {
-      id: `error_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+      id: `error_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
       error,
       timestamp: new Date(),
       resolved: false
