@@ -1,7 +1,7 @@
 /**
  * Wine repository hook for managing wine data operations
  */
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { WineRecord } from '../types/WineTypes';
 import { WineRepository } from '../repositories/WineRepository';
 import { handleError } from '../utils/errorHandler';
@@ -12,7 +12,7 @@ export const useWineRepository = () => {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const repository = new WineRepository();
+  const repository = useRef(new WineRepository()).current;
 
   const saveWine = async (wine: WineRecord): Promise<void> => {
     try {
