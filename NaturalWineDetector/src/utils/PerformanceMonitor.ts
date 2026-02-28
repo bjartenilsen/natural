@@ -31,7 +31,7 @@ export class PerformanceMonitor {
    * Start tracking a performance metric
    */
   static startOperation(operation: string, metadata?: Record<string, any>): string {
-    const operationId = `${operation}_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    const operationId = `${operation}_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`;
     
     const metric: PerformanceMetric = {
       operation,

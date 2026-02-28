@@ -57,7 +57,7 @@ export const WineLoggingComponent: React.FC<WineLoggingProps> = ({
       setSaving(true);
 
       const wineRecord: WineRecord = {
-        id: `wine_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
+        id: `wine_${Date.now()}_${Math.random().toString(36).substring(2, 11)}`,
         imageUri,
         analysisResult,
         consumed: consumed!,
