@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
   Text,
@@ -27,13 +27,7 @@ export const WineAnalysisComponent: React.FC<WineAnalysisProps> = ({
   const [result, setResult] = useState<WineAnalysisResult | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    if (imageUri) {
-      analyzeWine();
-    }
-  }, [imageUri]);
-
-  const analyzeWine = async () => {
+  const analyzeWine = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -48,7 +42,13 @@ export const WineAnalysisComponent: React.FC<WineAnalysisProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [imageUri, onAnalysisComplete, onError]);
+
+  useEffect(() => {
+    if (imageUri) {
+      analyzeWine();
+    }
+  }, [imageUri, analyzeWine]);
 
   const handleRetry = () => {
     analyzeWine();
