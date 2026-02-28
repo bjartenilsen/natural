@@ -2,9 +2,7 @@
  * Network connectivity service for offline detection and management
  */
 
-import React from 'react';
 import { NetworkState } from '../types/ErrorTypes';
-import { ErrorHandler } from '../utils/errorHandler';
 
 // Try to import NetInfo, fall back to mock if not available
 let NetInfo: any;
@@ -77,9 +75,6 @@ export class NetworkService {
     const isNowOnline = networkState.isConnected && networkState.isInternetReachable;
 
     this.currentState = networkState;
-
-    // Update error handler with new network state
-    ErrorHandler.updateNetworkState(networkState);
 
     // Notify listeners
     this.listeners.forEach(listener => listener(networkState));
@@ -187,25 +182,3 @@ export class NetworkService {
     });
   }
 }
-
-/**
- * Hook for using network state in React components
- */
-export const useNetworkState = () => {
-  const [networkState, setNetworkState] = React.useState<NetworkState>(
-    NetworkService.getInstance().getCurrentState()
-  );
-
-  React.useEffect(() => {
-    const networkService = NetworkService.getInstance();
-    const unsubscribe = networkService.addListener(setNetworkState);
-
-    return unsubscribe;
-  }, []);
-
-  return {
-    networkState,
-    isOnline: networkState.isConnected && networkState.isInternetReachable,
-    isOffline: !networkState.isConnected || !networkState.isInternetReachable
-  };
-};
