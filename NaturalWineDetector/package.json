@@ -4,8 +4,8 @@
   "main": "index.ts",
   "scripts": {
     "start": "expo start",
-    "android": "expo start --android",
-    "ios": "expo start --ios",
+    "android": "expo run:android",
+    "ios": "expo run:ios",
     "web": "expo start --web",
     "lint": "eslint . --ext .js,.jsx,.ts,.tsx",
     "lint:fix": "eslint . --ext .js,.jsx,.ts,.tsx --fix",
@@ -16,18 +16,16 @@
     "test:coverage": "jest --coverage"
   },
   "dependencies": {
-
     "@react-native-async-storage/async-storage": "^2.1.0",
     "@react-native-community/netinfo": "^11.3.1",
     "@react-navigation/native": "^6.1.18",
     "@react-navigation/stack": "^6.4.1",
     "axios": "^1.12.2",
     "expo": "~52.0.0",
-    "expo-asset": "^12.0.9",
     "expo-camera": "~16.0.0",
     "expo-crypto": "~14.0.0",
     "expo-file-system": "~18.0.0",
-    "expo-image-manipulator": "^14.0.7",
+    "expo-image-manipulator": "~13.0.0",
     "expo-image-picker": "~16.0.0",
     "expo-location": "~18.0.0",
     "expo-secure-store": "~14.0.0",
