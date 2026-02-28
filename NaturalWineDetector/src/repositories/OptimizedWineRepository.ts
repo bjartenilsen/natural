@@ -1,10 +1,11 @@
 /**
  * Optimized Wine Repository with pagination and performance improvements
- * Extends the base WineRepository with advanced querying and caching capabilities
+ * Uses composition to wrap a WineRepository with advanced querying and caching capabilities
  */
 
 import { WineRecord } from '../types/WineTypes';
 import { WineRepository } from './WineRepository';
+import { DatabaseService } from './DatabaseService';
 import { PerformanceMonitor } from '../utils/PerformanceMonitor';
 import { MemoryManager } from '../utils/MemoryManager';
 import { rowToWineRecord } from './DatabaseUtils';
@@ -39,7 +40,7 @@ export interface PaginatedResult<T> {
   };
 }
 
-export class OptimizedWineRepository extends WineRepository {
+export class OptimizedWineRepository {
   private static readonly CACHE_TTL = 5 * 60 * 1000; // 5 minutes
   private static readonly MAX_CACHE_SIZE = 50;
   
@@ -47,6 +48,14 @@ export class OptimizedWineRepository extends WineRepository {
   private totalCountCache: { count: number; timestamp: number } | null = null;
   
   private static instance: OptimizedWineRepository | null = null;
+
+  private readonly repository: WineRepository;
+  private readonly dbService: DatabaseService;
+
+  private constructor() {
+    this.repository = new WineRepository();
+    this.dbService = DatabaseService.getInstance();
+  }
   
   /**
    * Get singleton instance
@@ -56,6 +65,58 @@ export class OptimizedWineRepository extends WineRepository {
       this.instance = new OptimizedWineRepository();
     }
     return this.instance;
+  }
+
+  // --- Delegated base repository methods ---
+
+  async saveWine(wine: WineRecord): Promise<void> {
+    await this.repository.saveWine(wine);
+    this.clearCache();
+  }
+
+  async getAllWines(): Promise<WineRecord[]> {
+    return this.repository.getAllWines();
+  }
+
+  async getWineById(id: string): Promise<WineRecord | null> {
+    return this.repository.getWineById(id);
+  }
+
+  async deleteWine(id: string): Promise<void> {
+    await this.repository.deleteWine(id);
+    this.clearCache();
+  }
+
+  async getWinesByConsumption(consumed: boolean): Promise<WineRecord[]> {
+    return this.repository.getWinesByConsumption(consumed);
+  }
+
+  async getWinesByNaturalStatus(isNatural: boolean): Promise<WineRecord[]> {
+    return this.repository.getWinesByNaturalStatus(isNatural);
+  }
+
+  async searchWinesByNotes(searchTerm: string): Promise<WineRecord[]> {
+    return this.repository.searchWinesByNotes(searchTerm);
+  }
+
+  async getWineStats(): Promise<{ total: number; consumed: number; natural: number }> {
+    return this.repository.getWineStats();
+  }
+
+  isAvailable(): boolean {
+    return this.repository.isAvailable();
+  }
+
+  getOfflineStatus() {
+    return this.repository.getOfflineStatus();
+  }
+
+  async getUnsyncedWines(): Promise<WineRecord[]> {
+    return this.repository.getUnsyncedWines();
+  }
+
+  async markWinesAsSynced(wineIds: string[]): Promise<void> {
+    return this.repository.markWinesAsSynced(wineIds);
   }
 
   /**

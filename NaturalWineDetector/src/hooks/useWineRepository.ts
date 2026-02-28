@@ -3,7 +3,7 @@
  */
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { WineRecord } from '../types/WineTypes';
-import { WineRepository } from '../repositories/WineRepository';
+import { OptimizedWineRepository } from '../repositories/OptimizedWineRepository';
 import { handleError } from '../utils/errorHandler';
 
 export const useWineRepository = () => {
@@ -12,7 +12,7 @@ export const useWineRepository = () => {
   const [error, setError] = useState<string | null>(null);
   const [refreshing, setRefreshing] = useState(false);
 
-  const repository = useRef(new WineRepository()).current;
+  const repository = useRef(OptimizedWineRepository.getInstance()).current;
 
   const saveWine = async (wine: WineRecord): Promise<void> => {
     try {
