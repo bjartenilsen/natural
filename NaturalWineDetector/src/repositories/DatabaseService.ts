@@ -130,7 +130,7 @@ export class DatabaseService {
             id TEXT PRIMARY KEY,
             image_uri TEXT NOT NULL,
             is_natural_wine INTEGER NOT NULL,
-            confidence_score INTEGER NOT NULL,
+            confidence_score REAL NOT NULL,
             explanation TEXT NOT NULL,
             consumed INTEGER NOT NULL DEFAULT 0,
             latitude REAL,
