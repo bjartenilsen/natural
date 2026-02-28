@@ -18,9 +18,6 @@ export const CameraScreen: React.FC<Props> = ({ navigation }) => {
     try {
       setIsCapturing(true);
       
-      // Small delay to show loading state
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
       setIsNavigating(true);
       NavigationUtils.navigateToAnalysis(navigation, imageUri, location);
     } catch (error) {
