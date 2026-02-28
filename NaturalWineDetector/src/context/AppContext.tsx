@@ -5,7 +5,7 @@ import React, { createContext, useContext, useReducer, useRef, ReactNode, useEff
 import { AppState, AppAction } from '../types/AppTypes';
 import { WineRecord } from '../types/WineTypes';
 import { initializeDatabase } from '../repositories/DatabaseInitializer';
-import { WineRepository } from '../repositories/WineRepository';
+import { OptimizedWineRepository } from '../repositories/OptimizedWineRepository';
 
 interface AppContextType {
   state: AppState;
@@ -69,7 +69,7 @@ interface AppProviderProps {
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  const wineRepository = useRef(new WineRepository()).current;
+  const wineRepository = useRef(OptimizedWineRepository.getInstance()).current;
 
   // Action creators
   const actions = {
