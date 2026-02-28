@@ -102,7 +102,7 @@ export class ApiKeyService {
       return false;
     }
 
-    // OpenAI API keys start with 'sk-' and are typically 51 characters long
+    // OpenAI API keys start with 'sk-' (key length varies by key type)
     const trimmedKey = apiKey.trim();
     return trimmedKey.startsWith('sk-') && trimmedKey.length >= 20;
   }
