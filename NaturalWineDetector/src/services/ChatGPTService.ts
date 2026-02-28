@@ -12,6 +12,7 @@ import { API_CONFIG, RETRY_CONFIG, RATE_LIMIT_CONFIG } from '../utils/constants'
 import { processImageForApi, imageToBase64, validateImageComplete } from '../utils/imageUtils';
 import { ApiKeyService, ApiUsageData } from './ApiKeyService';
 import { ErrorHandler } from '../utils/errorHandler';
+import { isAppErrorOfType } from '../utils/typeGuards';
 import { NetworkService } from './NetworkService';
 import { OfflineQueueService } from './OfflineQueueService';
 
@@ -166,7 +167,7 @@ export class ChatGPTService {
       console.error('Wine analysis failed:', error);
       
       // If it's already an ApiError, re-throw it
-      if (error && typeof error === 'object' && 'type' in error && error.type === 'api') {
+      if (isAppErrorOfType(error, 'api')) {
         throw error;
       }
 
