@@ -63,7 +63,7 @@ jobs:
         working-directory: ./NaturalWineDetector
         run: |
           echo "Authenticating with Expo..."
-          eas login --non-interactive
+          eas whoami
         env:
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
