@@ -12,6 +12,7 @@ import { ChatGPTService } from '../services/ChatGPTService';
 
 interface WineAnalysisProps {
   imageUri: string;
+  /** Display-only — shown as coordinates on screen but not sent to the analysis API */
   location?: LocationData;
   onAnalysisComplete: (result: WineAnalysisResult) => void;
   onError: (error: string) => void;
