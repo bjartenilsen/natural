@@ -8,7 +8,7 @@ import {
   ApiConfig 
 } from '../types/ApiTypes';
 import { ApiError } from '../types/ErrorTypes';
-import { API_CONFIG, RETRY_CONFIG } from '../utils/constants';
+import { API_CONFIG, RETRY_CONFIG, RATE_LIMIT_CONFIG } from '../utils/constants';
 import { processImageForApi, imageToBase64, validateImageComplete } from '../utils/imageUtils';
 import { ApiKeyService, ApiUsageData } from './ApiKeyService';
 import { ErrorHandler } from '../utils/errorHandler';
@@ -374,14 +374,14 @@ export class ChatGPTService {
     const now = Date.now();
     
     // Reset counter if cooldown period has passed
-    if (now - this.rateLimitResetTime > 60000) { // 1 minute
+    if (now - this.rateLimitResetTime > RATE_LIMIT_CONFIG.COOLDOWN_PERIOD) {
       this.requestCount = 0;
       this.rateLimitResetTime = now;
     }
 
     // Check if we've exceeded rate limit
-    if (this.requestCount >= 10) { // 10 requests per minute
-      const waitTime = 60000 - (now - this.rateLimitResetTime);
+    if (this.requestCount >= RATE_LIMIT_CONFIG.MAX_REQUESTS_PER_MINUTE) {
+      const waitTime = RATE_LIMIT_CONFIG.COOLDOWN_PERIOD - (now - this.rateLimitResetTime);
       throw ErrorHandler.createApiError({
         message: `Rate limit exceeded. Please wait ${Math.ceil(waitTime / 1000)} seconds.`,
         recoverable: true,
@@ -440,7 +440,7 @@ export class ChatGPTService {
     canMakeRequest: boolean;
   } {
     const now = Date.now();
-    const canMakeRequest = this.requestCount < 10 || (now - this.rateLimitResetTime >= 60000);
+    const canMakeRequest = this.requestCount < RATE_LIMIT_CONFIG.MAX_REQUESTS_PER_MINUTE || (now - this.rateLimitResetTime >= RATE_LIMIT_CONFIG.COOLDOWN_PERIOD);
     
     return {
       requestCount: this.requestCount,
