@@ -2,21 +2,10 @@
  * Offline queue service for managing API requests when offline
  */
 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { OfflineQueueItem, NetworkState } from '../types/ErrorTypes';
 import { NetworkService } from './NetworkService';
 import { ErrorHandler } from '../utils/errorHandler';
-
-// Try to import AsyncStorage, fall back to mock if not available
-let AsyncStorage: any;
-
-try {
-  AsyncStorage = require('@react-native-async-storage/async-storage').default;
-} catch (error) {
-  // Use mock for development
-  const { mockAsyncStorage } = require('../utils/mockDependencies');
-  AsyncStorage = mockAsyncStorage;
-  console.warn('AsyncStorage not available, using mock implementation');
-}
 
 const QUEUE_STORAGE_KEY = '@natural_wine_detector_offline_queue';
 
