@@ -23,7 +23,7 @@ export default function App() {
               <AppInitializer>
                 <AccessibilityAudit />
                 <AppNavigator />
-                <OfflineIndicator showWhenOnline={true} position="top" />
+                <OfflineIndicator showWhenOnline={false} position="top" />
                 <StatusBar style="light" />
               </AppInitializer>
             </WorkflowManager>
