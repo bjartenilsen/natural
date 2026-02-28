@@ -10,6 +10,8 @@ jobs:
   build:
     name: Build and Submit
     runs-on: ubuntu-latest
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
     steps:
       - name: Check for EXPO_TOKEN
         run: |
@@ -64,8 +66,6 @@ jobs:
         run: |
           echo "Authenticating with Expo..."
           eas whoami
-        env:
-          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
 
       - name: Build Android APK
         if: env.SKIP_BUILD == 'false'
