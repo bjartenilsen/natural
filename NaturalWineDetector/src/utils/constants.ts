@@ -7,7 +7,7 @@ export const DATABASE_VERSION = 1;
 export const API_CONFIG = {
   OPENAI_BASE_URL: 'https://api.openai.com/v1',
   CHAT_COMPLETIONS_ENDPOINT: '/chat/completions',
-  MODEL: 'gpt-4-vision-preview',
+  MODEL: 'gpt-4o',
   MAX_TOKENS: 500,
   TEMPERATURE: 0.1,
   TIMEOUT: 30000, // 30 seconds
