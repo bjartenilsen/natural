@@ -2,22 +2,8 @@
  * Network connectivity service for offline detection and management
  */
 
+import NetInfo from '@react-native-community/netinfo';
 import { NetworkState } from '../types/ErrorTypes';
-
-// Try to import NetInfo, fall back to mock if not available
-let NetInfo: any;
-let NetInfoState: any;
-
-try {
-  const netInfoModule = require('@react-native-community/netinfo');
-  NetInfo = netInfoModule.default || netInfoModule;
-  NetInfoState = netInfoModule.NetInfoState;
-} catch (error) {
-  // Use mock for development
-  const { mockNetInfo } = require('../utils/mockDependencies');
-  NetInfo = mockNetInfo;
-  console.warn('NetInfo not available, using mock implementation');
-}
 
 export class NetworkService {
   private static instance: NetworkService;
