@@ -1,0 +1,73 @@
+name: Build Beta APK
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Release tag (e.g. v1.0.0-beta.1)'
+        required: true
+        default: 'v1.0.0-beta.1'
+
+jobs:
+  build-android:
+    name: Build Android APK
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.11.1'
+          cache: 'npm'
+          cache-dependency-path: 'NaturalWineDetector/package-lock.json'
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      - name: Setup Android SDK
+        uses: android-actions/setup-android@v3
+
+      - name: Install dependencies
+        working-directory: ./NaturalWineDetector
+        run: npm ci
+
+      - name: Run Expo prebuild
+        working-directory: ./NaturalWineDetector
+        run: npx expo prebuild --platform android --clean
+
+      - name: Build APK with Gradle
+        working-directory: ./NaturalWineDetector/android
+        run: ./gradlew assembleRelease --no-daemon
+
+      - name: Find and rename APK
+        id: apk
+        run: |
+          APK_PATH=$(find NaturalWineDetector/android -name "*.apk" -path "*/release/*" | head -1)
+          echo "Found APK at: $APK_PATH"
+          cp "$APK_PATH" NaturalWineDetector/NaturalWineDetector-${{ github.event.inputs.release_tag }}.apk
+          echo "apk_path=NaturalWineDetector/NaturalWineDetector-${{ github.event.inputs.release_tag }}.apk" >> $GITHUB_OUTPUT
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.event.inputs.release_tag }}
+          name: "Natural Wine Detector ${{ github.event.inputs.release_tag }}"
+          body: |
+            ## Beta Release ${{ github.event.inputs.release_tag }}
+
+            Download the APK below and install it on your Android device.
+
+            ### Install instructions
+            1. Download `NaturalWineDetector-${{ github.event.inputs.release_tag }}.apk`
+            2. On your Android device, allow installation from unknown sources
+            3. Open the APK file to install
+          prerelease: true
+          files: ${{ steps.apk.outputs.apk_path }}
