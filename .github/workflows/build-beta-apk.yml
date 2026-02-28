@@ -39,20 +39,19 @@ jobs:
         working-directory: ./NaturalWineDetector
         run: npm ci
 
-      - name: Generate Android project
+      - name: Install EAS CLI
+        run: npm install -g eas-cli@latest
+
+      - name: Build APK with EAS
         working-directory: ./NaturalWineDetector
-        run: npx expo prebuild --platform android --clean --no-install
+        run: eas build --platform android --profile preview --local --non-interactive --output ./build/NaturalWineDetector.apk
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          EAS_NO_VCS: 1
 
-      - name: Build APK with Gradle
-        working-directory: ./NaturalWineDetector/android
-        run: ./gradlew assembleRelease --no-daemon
-
-      - name: Find and rename APK
+      - name: Rename APK
         run: |
-          APK_PATH=$(find NaturalWineDetector/android -name "*.apk" -path "*/release/*" | head -1)
-          echo "Found APK at: $APK_PATH"
-          mkdir -p NaturalWineDetector/build
-          cp "$APK_PATH" "NaturalWineDetector/build/NaturalWineDetector-${{ github.event.inputs.release_tag }}.apk"
+          mv NaturalWineDetector/build/NaturalWineDetector.apk "NaturalWineDetector/build/NaturalWineDetector-${{ github.event.inputs.release_tag }}.apk"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
