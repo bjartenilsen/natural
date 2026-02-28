@@ -1,9 +1,7 @@
 import React from 'react';
-import { View } from 'react-native';
 import { NavigationContainer } from '@react-navigation/native';
 import { createStackNavigator } from '@react-navigation/stack';
 import { RootStackParamList } from '../types/AppTypes';
-import { WorkflowStatus } from '../components/WorkflowStatus';
 import {
   CameraScreen,
   AnalysisScreen,
@@ -17,9 +15,7 @@ const Stack = createStackNavigator<RootStackParamList>();
 
 export const AppNavigator: React.FC = () => {
   return (
-    <View style={{ flex: 1 }}>
-      <WorkflowStatus showProgress={true} position="top" />
-      <NavigationContainer>
+    <NavigationContainer>
       <Stack.Navigator
         initialRouteName="Camera"
         screenOptions={{
@@ -91,6 +87,5 @@ export const AppNavigator: React.FC = () => {
         />
       </Stack.Navigator>
     </NavigationContainer>
-    </View>
   );
 };
