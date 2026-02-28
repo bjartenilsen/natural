@@ -440,7 +440,7 @@ export class ChatGPTService {
     canMakeRequest: boolean;
   } {
     const now = Date.now();
-    const canMakeRequest = this.requestCount < 10 && (now - this.rateLimitResetTime < 60000);
+    const canMakeRequest = this.requestCount < 10 || (now - this.rateLimitResetTime >= 60000);
     
     return {
       requestCount: this.requestCount,
