@@ -1,7 +1,7 @@
 /**
  * Global application context with state management
  */
-import React, { createContext, useContext, useReducer, ReactNode, useEffect } from 'react';
+import React, { createContext, useContext, useReducer, useRef, ReactNode, useEffect } from 'react';
 import { AppState, AppAction } from '../types/AppTypes';
 import { WineRecord } from '../types/WineTypes';
 import { initializeDatabase } from '../repositories/DatabaseInitializer';
@@ -69,7 +69,7 @@ interface AppProviderProps {
 
 export const AppProvider: React.FC<AppProviderProps> = ({ children }) => {
   const [state, dispatch] = useReducer(appReducer, initialState);
-  const wineRepository = new WineRepository();
+  const wineRepository = useRef(new WineRepository()).current;
 
   // Action creators
   const actions = {
