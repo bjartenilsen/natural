@@ -14,7 +14,7 @@ import {
   RefreshControl,
 } from 'react-native';
 import { WineRecord } from '../types/WineTypes';
-import { useNetworkState } from '../services/NetworkService';
+import { useNetworkState } from '../hooks/useNetworkState';
 
 interface WineHistoryProps {
   wines: WineRecord[];

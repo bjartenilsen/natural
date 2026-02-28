@@ -4,7 +4,7 @@
 
 import React from 'react';
 import { View, Text, StyleSheet, Animated } from 'react-native';
-import { useNetworkState } from '../services/NetworkService';
+import { useNetworkState } from '../hooks/useNetworkState';
 
 interface OfflineIndicatorProps {
   showWhenOnline?: boolean;
