@@ -113,18 +113,24 @@ export class MemoryManager {
   }
 
   /**
-   * Get current memory usage information
+   * Get current memory usage information.
+   *
+   * NOTE: React Native does not expose real device memory metrics.
+   * All values returned here are **estimates** based on the in-app image
+   * cache size. `totalMemory` uses a fixed 512 MB placeholder and does
+   * not reflect actual device RAM. Consumers should treat the
+   * `memoryPressure` level as a heuristic, not a precise measurement.
    */
   static async getMemoryInfo(): Promise<MemoryInfo> {
     try {
-      // Note: React Native doesn't provide direct memory access
-      // This is a simplified implementation that estimates based on image cache
+      // React Native doesn't provide direct memory access.
+      // Estimate usage based on the tracked image cache only.
       const cachedImageSize = Array.from(this.imageCache.values())
         .reduce((total, item) => total + item.size, 0);
       
-      // Estimate total memory usage (this is approximate)
       const estimatedUsedMemory = cachedImageSize;
-      const estimatedTotalMemory = 512 * 1024 * 1024; // Assume 512MB available for app
+      // Placeholder: actual device memory is unavailable in React Native
+      const estimatedTotalMemory = 512 * 1024 * 1024;
       const freeMemory = estimatedTotalMemory - estimatedUsedMemory;
       const memoryUsageRatio = estimatedUsedMemory / estimatedTotalMemory;
       
@@ -143,6 +149,7 @@ export class MemoryManager {
       };
     } catch (error) {
       console.warn('Failed to get memory info:', error);
+      // Fallback with placeholder values (not real device metrics)
       return {
         usedMemory: 0,
         totalMemory: 512 * 1024 * 1024,
