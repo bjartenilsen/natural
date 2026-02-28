@@ -43,23 +43,9 @@ jobs:
         working-directory: ./NaturalWineDetector
         run: npx expo prebuild --platform android --clean --no-install
 
-      - name: Create JS bundle
-        working-directory: ./NaturalWineDetector
-        run: |
-          mkdir -p android/app/src/main/assets
-          npx react-native bundle \
-            --platform android \
-            --dev false \
-            --entry-file index.ts \
-            --bundle-output android/app/src/main/assets/index.android.bundle \
-            --assets-dest android/app/src/main/res
-
       - name: Build APK with Gradle
         working-directory: ./NaturalWineDetector/android
-        run: |
-          # Ensure node is available to Gradle for Expo modules resolution
-          export NODE_BINARY=$(which node)
-          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+        run: ./gradlew assembleRelease --no-daemon
 
       - name: Find and rename APK
         run: |
