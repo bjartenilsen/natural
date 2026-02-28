@@ -8,8 +8,6 @@ import {
   LocationError,
   ErrorHandlerResult,
   RetryConfig,
-  OfflineQueueItem,
-  NetworkState,
   ErrorLogEntry
 } from '../types/ErrorTypes';
 
@@ -33,13 +31,6 @@ export const handleError = (error: unknown): string => {
  */
 export class ErrorHandler {
   private static errorLog: ErrorLogEntry[] = [];
-  private static offlineQueue: OfflineQueueItem[] = [];
-  private static networkState: NetworkState = {
-    isConnected: true,
-    isInternetReachable: true,
-    type: 'unknown',
-    details: null
-  };
 
   /**
    * Default retry configuration
@@ -51,91 +42,6 @@ export class ErrorHandler {
     backoffMultiplier: 2,
     retryableErrors: ['network', 'api', 'timeout']
   };
-
-  /**
-   * Update network connectivity state
-   * @param state - Current network state
-   */
-  static updateNetworkState(state: NetworkState): void {
-    this.networkState = state;
-    
-    // Process offline queue when connectivity is restored
-    if (state.isConnected && state.isInternetReachable) {
-      this.processOfflineQueue();
-    }
-  }
-
-  /**
-   * Check if device is currently offline
-   * @returns True if offline
-   */
-  static isOffline(): boolean {
-    return !this.networkState.isConnected || !this.networkState.isInternetReachable;
-  }
-
-  /**
-   * Add item to offline queue
-   * @param item - Queue item to add
-   */
-  static addToOfflineQueue(item: Omit<OfflineQueueItem, 'id' | 'timestamp' | 'attempts' | 'nextRetry'>): void {
-    const queueItem: OfflineQueueItem = {
-      ...item,
-      id: `offline_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
-      timestamp: new Date(),
-      attempts: 0,
-      nextRetry: new Date()
-    };
-    
-    this.offlineQueue.push(queueItem);
-  }
-
-  /**
-   * Process offline queue when connectivity is restored
-   */
-  private static async processOfflineQueue(): Promise<void> {
-    const now = new Date();
-    const itemsToProcess = this.offlineQueue.filter(item => 
-      item.attempts < item.maxAttempts && item.nextRetry <= now
-    );
-
-    for (const item of itemsToProcess) {
-      try {
-        // Process the queued item based on type
-        await this.processQueueItem(item);
-        
-        // Remove successful item from queue
-        this.offlineQueue = this.offlineQueue.filter(q => q.id !== item.id);
-      } catch (error) {
-        // Update retry information
-        item.attempts++;
-        if (item.attempts < item.maxAttempts) {
-          const delay = Math.min(
-            this.defaultRetryConfig.baseDelay * Math.pow(this.defaultRetryConfig.backoffMultiplier, item.attempts),
-            this.defaultRetryConfig.maxDelay
-          );
-          item.nextRetry = new Date(now.getTime() + delay);
-        } else {
-          // Remove failed item after max attempts
-          this.offlineQueue = this.offlineQueue.filter(q => q.id !== item.id);
-        }
-      }
-    }
-  }
-
-  /**
-   * Process individual queue item
-   * @param item - Queue item to process
-   */
-  private static async processQueueItem(item: OfflineQueueItem): Promise<void> {
-    switch (item.type) {
-      case 'api_request':
-        // Re-attempt API request
-        // This would be implemented based on the specific API service
-        break;
-      default:
-        throw new Error(`Unknown queue item type: ${item.type}`);
-    }
-  }
 
   /**
    * Log error for debugging and analytics
