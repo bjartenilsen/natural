@@ -17,9 +17,6 @@ export const AnalysisScreen: React.FC<Props> = ({ route, navigation }) => {
     try {
       setIsNavigating(true);
       
-      // Small delay for smooth transition
-      await new Promise(resolve => setTimeout(resolve, 300));
-      
       NavigationUtils.navigateToWineLogging(navigation, result, imageUri, location);
     } catch (error) {
       console.error('Navigation error:', error);
