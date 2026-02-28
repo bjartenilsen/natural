@@ -87,7 +87,7 @@ const CameraInterface: React.FC<CameraComponentProps> = ({
 
       // Launch camera
       const result = await ImagePicker.launchCameraAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [3, 4], // Good aspect ratio for wine bottles
         quality: 0.8, // Balance between quality and file size
@@ -142,7 +142,7 @@ const CameraInterface: React.FC<CameraComponentProps> = ({
     try {
       // Launch image picker
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        mediaTypes: ['images'],
         allowsEditing: true,
         aspect: [3, 4],
         quality: 0.8,
